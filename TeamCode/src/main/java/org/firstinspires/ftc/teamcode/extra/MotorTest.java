@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@TeleOp(name="MotorTest")
+@TeleOp(name="MotorTest",group="Power-Play-Extra")
 public class MotorTest extends OpMode {
 
     private DcMotor lf;

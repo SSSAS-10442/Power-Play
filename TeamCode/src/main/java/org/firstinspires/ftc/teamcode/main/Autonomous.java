@@ -9,6 +9,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.datamatrix.DataMatrixReader;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.vuforia.Image;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -31,6 +32,8 @@ public class Autonomous extends Main {
     }
 
     State state;
+
+    ElapsedTime runtime;
 
     int detected = 0; // 0 = not detected yet, 1 = position 1, 2 = position 2, 3 = position 3
 
@@ -82,6 +85,8 @@ public class Autonomous extends Main {
             tfod.setClippingMargins(0,0,0,0); // This will need to be updated
         }
 
+        runtime = new ElapsedTime();
+
     }
 
     @Override
@@ -108,6 +113,8 @@ public class Autonomous extends Main {
 
         state = State.DETECT_SIGNAL;
 
+        runtime.reset();
+
     }
 
     @Override
@@ -115,12 +122,16 @@ public class Autonomous extends Main {
 
         telemetry.addLine("Version: " + version);
         telemetry.addLine("State: " + state);
-        telemetry.addLine("Detected: ");
+        telemetry.addLine("Runtime: " + runtime);
+        telemetry.addLine("Detected: " + detected);
 
         switch (state) {
             case SET_VUFORIA_FRAME_QUEUE:
                 vuforia.setFrameQueueCapacity(1);
-                state = State.DETECT_SIGNAL;
+
+                if (runtime.seconds() > 3) {
+                    state = State.DETECT_SIGNAL;
+                }
                 break;
             case EXAMPLE_A:
                 break;
@@ -128,7 +139,6 @@ public class Autonomous extends Main {
                 break;
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
-                Image image = vuforia.getFrameQueue().element().getImage(1);
 
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
                 //copy pixel data from the Bitmap into the 'intArray' array
@@ -153,7 +163,7 @@ public class Autonomous extends Main {
                 break;
         }
 
-//        telemetry.update();
+        telemetry.update();
 
     }
 

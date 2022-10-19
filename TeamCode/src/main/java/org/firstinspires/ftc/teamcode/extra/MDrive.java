@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp
+@TeleOp(name="MDrive",group="Power-Play-Extra")
 public class MDrive extends OpMode {
 
     enum State {
@@ -72,7 +72,7 @@ public class MDrive extends OpMode {
 
         switch (state) {
             case MAIN:
-                drive = gamepad1.left_stick_y;
+                drive = -gamepad1.left_stick_y;
                 strafe = gamepad1.left_stick_x;
                 rotate = gamepad1.right_stick_x;
 
@@ -81,10 +81,10 @@ public class MDrive extends OpMode {
                 rightFrontPower = drive - rotate - strafe;
                 rightBackPower = drive - rotate + strafe;
 
-                lf.setVelocity(leftFrontPower);
-                lb.setVelocity(leftBackPower);
-                rf.setVelocity(rightFrontPower);
-                rb.setVelocity(rightBackPower);
+                lf.setVelocity(drive * 1000);
+                lb.setVelocity(drive * 1000);
+                rf.setVelocity(drive * 1000);
+                rb.setVelocity(drive * 1000);
 
                 if (gamepad1.a && !aLastFrame) {
                     clawPos += 0.05;
@@ -107,12 +107,20 @@ public class MDrive extends OpMode {
 
                 if (gamepad1.dpad_down) {
                     lf.setVelocity(2000);
+                } else {
+                    lf.setVelocity(0);
                 } if (gamepad1.dpad_left) {
                     lb.setVelocity(2000);
+                } else {
+                    lb.setVelocity(0);
                 } if (gamepad1.dpad_up) {
                     rf.setVelocity(2000);
+                } else {
+                    rf.setVelocity(0);
                 } if (gamepad1.dpad_right) {
                     rb.setVelocity(2000);
+                } else {
+                    rb.setVelocity(0);
                 }
 
                 if (gamepad1.start) {
