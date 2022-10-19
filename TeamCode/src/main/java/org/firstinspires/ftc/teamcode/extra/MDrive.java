@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.extra;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -49,6 +50,11 @@ public class MDrive extends OpMode {
         rf.setDirection(DcMotorSimple.Direction.REVERSE);
         rb.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         claw = hardwareMap.get(Servo.class, "claw");
 
         state = State.MAIN;
@@ -74,23 +80,22 @@ public class MDrive extends OpMode {
             case MAIN:
                 drive = -gamepad1.left_stick_y;
                 strafe = gamepad1.left_stick_x;
-                rotate = gamepad1.right_stick_x;
+                rotate = gamepad1.right_stick_x / 2;
 
                 leftFrontPower = drive + rotate + strafe;
                 leftBackPower = drive + rotate - strafe;
                 rightFrontPower = drive - rotate - strafe;
                 rightBackPower = drive - rotate + strafe;
 
-                lf.setVelocity(drive * 1000);
-                lb.setVelocity(drive * 1000);
-                rf.setVelocity(drive * 1000);
-                rb.setVelocity(drive * 1000);
+                lf.setVelocity(leftFrontPower * 2000);
+                lb.setVelocity(leftBackPower * 2000);
+                rf.setVelocity(rightFrontPower * 2000);
+                rb.setVelocity(rightBackPower * 2000);
 
-                if (gamepad1.a && !aLastFrame) {
-                    clawPos += 0.05;
-                }
-                if (gamepad1.b && !bLastFrame) {
-                    clawPos -= 0.05;
+                if (gamepad1.a) {
+                    clawPos = 0.2;
+                } else if (gamepad1.b) {
+                    clawPos = 0.65;
                 }
 
                 claw.setPosition(clawPos);

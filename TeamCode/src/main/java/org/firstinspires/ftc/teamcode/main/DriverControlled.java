@@ -2,8 +2,11 @@ package org.firstinspires.ftc.teamcode.main;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
 @TeleOp(name="Power-Play",group="Power-Play")
@@ -26,6 +29,9 @@ public class DriverControlled extends Main {
 
     // Create and initialize a new MotorsEx object (see MotorsEx.java)
     private final MotorsEx motors = new MotorsEx();
+
+    //
+    private Servo claw = null;
 
     // Create and initialize drive, strafe, and rotate. These control driving with mechanum wheels.
     private double drive = 0;
@@ -57,9 +63,17 @@ public class DriverControlled extends Main {
      * drive, strafe, and rotate are then multiplied by max
      * */
     private void driving(int max) {
-        drive = gamepad1.left_stick_y * max;
+        drive = -gamepad1.left_stick_y * max;
         strafe = gamepad1.left_stick_x * max;
-        rotate = gamepad1.right_stick_x * max;
+        rotate = gamepad1.right_stick_x * max / 2;
+    }
+
+    private void controlClaw() {
+        if (gamepad1.a) {
+            claw.setPosition(0.2);
+        } else if (gamepad1.b) {
+            claw.setPosition(0.7);
+        }
     }
 
     /**
@@ -108,6 +122,13 @@ public class DriverControlled extends Main {
         motors.leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        motors.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motors.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motors.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motors.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        claw = hardwareMap.get(Servo.class, "claw");
+
         lastkey = new LastKey(gamepad1);
 
         initRoadRunner();
@@ -138,23 +159,13 @@ public class DriverControlled extends Main {
         switch (state) {
             case HOME:
                 driving();
+                controlClaw();
 
                 if (gamepad1.a) {
                     state = State.INTAKE;
                     break;
                 } if (gamepad1.dpad_up) {
                     state = State.SCORING_L;
-                }
-                break;
-            case INTAKE:
-                driving();
-
-                if (gamepad1.dpad_down) {
-                    state = State.HOME;
-                    break;
-                } if (lastkey.dpad_up && !gamepad1.dpad_up) {
-                    state = State.SCORING_L;
-                    break;
                 }
                 break;
             case SCORING_L:
@@ -210,10 +221,10 @@ public class DriverControlled extends Main {
         lastkey.update();
 
         // Calculate power for each wheel
-        leftFrontPower = rotate - strafe + drive;
-        rightFrontPower = rotate - strafe - drive;
-        leftBackPower = rotate + strafe + drive;
-        rightBackPower = rotate + strafe - drive;
+        leftFrontPower = drive + rotate + strafe;
+        leftBackPower = drive + rotate - strafe;
+        rightFrontPower = drive - rotate - strafe;
+        rightBackPower = drive - rotate + strafe;
 
         // Send power to wheels
         motors.setVelocity(leftFrontPower,rightFrontPower,leftBackPower,rightBackPower);
