@@ -134,7 +134,7 @@ public class Autonomous extends Main {
                 }
                 break;
             case EXAMPLE_A:
-                break;
+                return;
             case EXAMPLE_B:
                 break;
             case DETECT_SIGNAL:

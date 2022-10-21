@@ -14,7 +14,7 @@ public class DriverControlled extends Main {
 
     enum State {
         HOME,
-        INTAKE,
+        GRAB_CONE,
         SCORING_GROUND,
         SCORING_S,
         SCORING_M,
@@ -31,7 +31,7 @@ public class DriverControlled extends Main {
     private final MotorsEx motors = new MotorsEx();
 
     //
-    private Servo claw = null;
+    private Claw claw = null;
 
     // Create and initialize drive, strafe, and rotate. These control driving with mechanum wheels.
     private double drive = 0;
@@ -66,14 +66,6 @@ public class DriverControlled extends Main {
         drive = -gamepad1.left_stick_y * max;
         strafe = gamepad1.left_stick_x * max;
         rotate = gamepad1.right_stick_x * max / 2;
-    }
-
-    private void controlClaw() {
-        if (gamepad1.a) {
-            claw.setPosition(0.2);
-        } else if (gamepad1.b) {
-            claw.setPosition(0.7);
-        }
     }
 
     /**
@@ -122,12 +114,9 @@ public class DriverControlled extends Main {
         motors.leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        motors.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motors.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motors.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motors.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motors.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        claw = hardwareMap.get(Servo.class, "claw");
+        claw = new Claw(hardwareMap.get(Servo.class, "claw"));
 
         lastkey = new LastKey(gamepad1);
 
@@ -159,56 +148,83 @@ public class DriverControlled extends Main {
         switch (state) {
             case HOME:
                 driving();
-                controlClaw();
+                claw.open();
 
-                if (gamepad1.a) {
-                    state = State.INTAKE;
-                    break;
-                } if (gamepad1.dpad_up) {
+                if (gamepad1.dpad_up) {
+                    state = State.GRAB_CONE;
+                }
+                break;
+            case GRAB_CONE:
+                driving();
+                claw.close();
+
+                if (gamepad1.dpad_up) {
                     state = State.SCORING_L;
+                } if (gamepad1.dpad_down) {
+                    state = State.HOME;
                 }
                 break;
             case SCORING_L:
                 driving();
+                claw.close();
 
                 if (gamepad1.dpad_down) {
-                    state = State.HOME;
-                    break;
-                } if (lastkey.dpad_up && !gamepad1.dpad_up) {
+                    claw.open();
+                }
+
+                if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_M;
+                    break;
+                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                    state = State.HOME;
                     break;
                 }
                 break;
             case SCORING_M:
                 driving();
+                claw.close();
 
                 if (gamepad1.dpad_down) {
-                    state = State.HOME;
-                    break;
-                } if (lastkey.dpad_up && !gamepad1.dpad_up) {
+                    claw.open();
+                }
+
+                if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_S;
+                    break;
+                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                    state = State.HOME;
                     break;
                 }
                 break;
             case SCORING_S:
                 driving();
+                claw.close();
 
                 if (gamepad1.dpad_down) {
-                    state = State.HOME;
-                    break;
-                } if (lastkey.dpad_up && !gamepad1.dpad_up) {
+                    claw.open();
+                }
+
+                if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_GROUND;
+                    break;
+                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                    state = State.HOME;
                     break;
                 }
                 break;
             case SCORING_GROUND:
                 driving();
+                claw.close();
 
                 if (gamepad1.dpad_down) {
-                    state = State.HOME;
-                    break;
-                } if (lastkey.dpad_up && !gamepad1.dpad_up) {
+                    claw.open();
+                }
+
+                if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_L;
+                    break;
+                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                    state = State.HOME;
                     break;
                 }
             default:
@@ -227,7 +243,10 @@ public class DriverControlled extends Main {
         rightBackPower = drive - rotate + strafe;
 
         // Send power to wheels
-        motors.setVelocity(leftFrontPower,rightFrontPower,leftBackPower,rightBackPower);
+        motors.leftFront.setVelocity(leftFrontPower);
+        motors.leftBack.setVelocity(leftBackPower);
+        motors.rightFront.setVelocity(rightFrontPower);
+        motors.rightBack.setVelocity(rightBackPower);
 
     }
 

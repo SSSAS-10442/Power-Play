@@ -25,11 +25,14 @@ public class MotorsEx {
         this.rightBack = rightBack;
     }
 
-    void setVelocity(double lf, double rf, double lb, double rb) {
-        leftFront.setVelocity(lf);
-        rightFront.setVelocity(rf);
-        leftBack.setVelocity(lb);
-        rightBack.setVelocity(rb);
+    DcMotorEx[] all() {
+        return new DcMotorEx[] {this.leftFront, this.leftBack, this.rightFront, this.rightBack};
+    }
+
+    void setRunMode(DcMotor.RunMode runMode) {
+        for (DcMotorEx motor: all()) {
+            motor.setMode(runMode);
+        }
     }
 
 }
