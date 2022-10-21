@@ -30,8 +30,11 @@ public class DriverControlled extends Main {
     // Create and initialize a new MotorsEx object (see MotorsEx.java)
     private final MotorsEx motors = new MotorsEx();
 
-    //
+    // Create the claw object
     private Claw claw = null;
+
+    // Create the Arm object
+    private Arm arm = null;
 
     // Create and initialize drive, strafe, and rotate. These control driving with mechanum wheels.
     private double drive = 0;
@@ -121,6 +124,9 @@ public class DriverControlled extends Main {
         // Initialize claw
         claw = new Claw(hardwareMap.get(Servo.class, "claw"));
 
+        // Initialize arm
+        arm = new Arm(hardwareMap.get(DcMotorEx.class, "arm"));
+
         // Start recording last inputs
         lastkey = new LastKey(gamepad1);
 
@@ -155,6 +161,9 @@ public class DriverControlled extends Main {
                 driving(); // Updates driving using gamepad1 inputs
                 claw.open(); // Open claw
 
+                // Bring arm down
+                arm.runToPosition(0);
+
                 // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_up) {
                     state = State.GRAB_CONE;
@@ -176,6 +185,9 @@ public class DriverControlled extends Main {
                 driving();
                 claw.close();
 
+                // Bring arm to SCORING_L position
+                arm.scoringL();
+
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -195,6 +207,9 @@ public class DriverControlled extends Main {
                 driving();
                 claw.close();
 
+                // Bring arm to SCORING_M position
+                arm.scoringM();
+
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
@@ -213,6 +228,9 @@ public class DriverControlled extends Main {
                 driving();
                 claw.close();
 
+                // Bring arm to SCORING_S position
+                arm.scoringS();
+
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
@@ -230,6 +248,9 @@ public class DriverControlled extends Main {
             case SCORING_GROUND:
                 driving();
                 claw.close();
+
+                // Bring arm to SCORING_GROUND position
+                arm.scoringG();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
