@@ -109,17 +109,22 @@ public class DriverControlled extends Main {
         motors.leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
         motors.rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
 
+        // Set motor directions
         motors.leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         motors.leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        // Run using encoder
         motors.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        // Initialize claw
         claw = new Claw(hardwareMap.get(Servo.class, "claw"));
 
+        // Start recording last inputs
         lastkey = new LastKey(gamepad1);
 
+        // Initialize RoadRunner
         initRoadRunner();
 
         // Set state to HOME
@@ -147,9 +152,10 @@ public class DriverControlled extends Main {
         // Begin our state machine
         switch (state) {
             case HOME:
-                driving();
-                claw.open();
+                driving(); // Updates driving using gamepad1 inputs
+                claw.open(); // Open claw
 
+                // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_up) {
                     state = State.GRAB_CONE;
                 }
@@ -158,6 +164,8 @@ public class DriverControlled extends Main {
                 driving();
                 claw.close();
 
+                // If dpad_up is pressed, go to SCORING_L state
+                // If dpad_dpwn is pressed, go to HOME state
                 if (gamepad1.dpad_up) {
                     state = State.SCORING_L;
                 } if (gamepad1.dpad_down) {
@@ -168,10 +176,13 @@ public class DriverControlled extends Main {
                 driving();
                 claw.close();
 
+                // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
 
+                // If dpad_up is pressed, go to SCORING_M state
+                // If dpad_down is unpressed, go to HOME state
                 if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_M;
                     break;
@@ -188,6 +199,8 @@ public class DriverControlled extends Main {
                     claw.open();
                 }
 
+                // If dpad_up is pressed, go to SCORING_S state
+                // If dpad_down is unpressed, go to HOME state
                 if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_S;
                     break;
@@ -204,6 +217,8 @@ public class DriverControlled extends Main {
                     claw.open();
                 }
 
+                // If dpad_up is pressed, go to SCORING_GROUND state
+                // If dpad_down is unpressed, go to HOME state
                 if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_GROUND;
                     break;
@@ -220,6 +235,8 @@ public class DriverControlled extends Main {
                     claw.open();
                 }
 
+                // If dpad_up is pressed, go to SCORING_L state
+                // If dpad_down is unpressed, go to HOME state
                 if (gamepad1.dpad_up && !lastkey.dpad_up) {
                     state = State.SCORING_L;
                     break;
@@ -228,6 +245,7 @@ public class DriverControlled extends Main {
                     break;
                 }
             default:
+                // If somehow we get to the default, go to HOME state
                 state = State.HOME;
                 break;
         }
