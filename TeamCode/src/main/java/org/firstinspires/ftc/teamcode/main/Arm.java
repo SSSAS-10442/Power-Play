@@ -16,29 +16,46 @@ public class Arm {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    void go() {
+        go(1000);
+    }
+
+    void go(int velocity) {
+        motor.setVelocity(velocity);
+    }
+
+    void stop() {
+        motor.setVelocity(0);
+    }
+
     void scoringL() {
         motor.setTargetPosition(Main.ARM_SCORING_L);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        go();
     }
 
     void scoringM() {
         motor.setTargetPosition(Main.ARM_SCORING_M);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        go();
     }
 
     void scoringS() {
         motor.setTargetPosition(Main.ARM_SCORING_S);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        go();
     }
 
     void scoringG() {
         motor.setTargetPosition(Main.ARM_SCORING_GROUND);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        go();
     }
 
     void runToPosition(int position) {
         motor.setTargetPosition(position);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        go();
     }
 
 }
