@@ -119,23 +119,18 @@ public class Autonomous extends Main {
     @Override
     public void loop() {
 
-        telemetry.addLine("Version: " + version);
-        telemetry.addLine("State: " + state);
-        telemetry.addLine("Runtime: " + runtime);
-        telemetry.addLine("Detected: " + detected);
-
         switch (state) {
             case SET_VUFORIA_FRAME_QUEUE:
                 vuforia.setFrameQueueCapacity(1);
 
-                if (runtime.seconds() > 3) {
+                if (gamepad2.a) {
                     state = State.DETECT_SIGNAL;
                 }
                 break;
             case EXAMPLE_A:
                 return;
             case EXAMPLE_B:
-                break;
+                return;
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
@@ -146,14 +141,19 @@ public class Autonomous extends Main {
 
                 BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
 
-                Result qrCodeResult = null;
+                Result qrCodeResult;
                 try {
                     qrCodeResult = new DataMatrixReader().decode(bb);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    telemetry.addLine("Error");
+                    telemetry.update();
+                    state = State.EXAMPLE_B;
+                    return;
                 }
                 String text = qrCodeResult.getText();
                 telemetry.addLine("QR Result: " + text);
+                telemetry.update();
                 state = State.EXAMPLE_A;
                 break;
             case EXAMPLE_C:
@@ -161,6 +161,11 @@ public class Autonomous extends Main {
             default:
                 break;
         }
+
+        telemetry.addLine("Version: " + version);
+        telemetry.addLine("State: " + state);
+        telemetry.addLine("Runtime: " + runtime);
+        telemetry.addLine("Detected: " + detected);
 
         telemetry.update();
 
