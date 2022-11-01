@@ -28,7 +28,7 @@ public class Arm {
     void stop() {
         motor.setVelocity(0);
     }
-    
+
     void checkShouldStop() {
         if (Math.abs(motor.getCurrentPosition() - motor.getTargetPosition()) < allowance) {
             stop();

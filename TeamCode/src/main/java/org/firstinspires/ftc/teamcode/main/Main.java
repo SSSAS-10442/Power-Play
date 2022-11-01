@@ -14,9 +14,9 @@ public abstract class Main extends OpMode {
 
     public static Version version = null;
 
-    static int ARM_SCORING_L = 1400;
-    static int ARM_SCORING_M = 900;
-    static int ARM_SCORING_S = 400;
+    static int ARM_SCORING_L = 2000;
+    static int ARM_SCORING_M = 1400;
+    static int ARM_SCORING_S = 700;
     static int ARM_SCORING_GROUND = 100;
 
     static int LIFT_SCORING_L = 1400;
