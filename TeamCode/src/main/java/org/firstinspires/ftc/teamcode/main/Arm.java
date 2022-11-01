@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class Arm {
 
     DcMotorEx motor;
+    static final int allowance = 5;
 
     public Arm(DcMotorEx arm) {
         this.motor = arm;
@@ -26,6 +27,12 @@ public class Arm {
 
     void stop() {
         motor.setVelocity(0);
+    }
+    
+    void checkShouldStop() {
+        if (Math.abs(motor.getCurrentPosition() - motor.getTargetPosition()) < allowance) {
+            stop();
+        }
     }
 
     void scoringL() {

@@ -169,7 +169,9 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift down
                 arm.runToPosition(0);
-                lift.runToPosition(0);
+//                lift.runToPosition(0);
+
+                arm.checkShouldStop();
 
                 // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_up) {
@@ -179,6 +181,8 @@ public class DriverControlled extends Main {
             case GRAB_CONE:
                 driving();
                 claw.close();
+
+                arm.checkShouldStop();
 
                 // If dpad_up is pressed, go to SCORING_L state
                 // If dpad_dpwn is pressed, go to HOME state
@@ -194,7 +198,9 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_L position
                 arm.scoringL();
-                lift.scoringL();
+//                lift.scoringL();
+
+                arm.checkShouldStop();
 
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
@@ -217,7 +223,9 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_M position
                 arm.scoringM();
-                lift.scoringM();
+//                lift.scoringM();
+
+                arm.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -239,7 +247,9 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_S position
                 arm.scoringS();
-                lift.scoringS();
+//                lift.scoringS();
+
+                arm.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -261,7 +271,9 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_GROUND position
                 arm.scoringG();
-                lift.scoringG();
+//                lift.scoringG();
+
+                arm.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
