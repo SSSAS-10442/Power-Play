@@ -26,7 +26,7 @@ public class Arm {
     }
 
     void stop() {
-        motor.setVelocity(0);
+        motor.setVelocity(1);
     }
 
     void checkShouldStop() {
