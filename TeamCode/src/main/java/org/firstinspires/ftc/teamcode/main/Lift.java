@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class Lift {
 
-    DcMotorEx motor;
+    public DcMotorEx motor;
     static final int allowance = 5;
 
-    Lift(DcMotorEx lift) {
+    public Lift(DcMotorEx lift) {
         this.motor = lift;
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }

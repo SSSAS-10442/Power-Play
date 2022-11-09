@@ -27,7 +27,7 @@ public class LastKey {
     boolean dpad_right = false;
     boolean dpad_down = false;
 
-    LastKey(Gamepad gamepad) {
+    public LastKey(Gamepad gamepad) {
         this.gamepad = gamepad;
         update();
     }
