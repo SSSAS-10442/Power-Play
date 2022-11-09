@@ -142,25 +142,6 @@ public class Autonomous extends Main {
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
-//                int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
-//                //copy pixel data from the Bitmap into the 'intArray' array
-//                bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-//                LuminanceSource source = new com.google.zxing.RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
-//
-//                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
-//
-//                Result qrCodeResult;
-//                try {
-//                    qrCodeResult = new DataMatrixReader().decode(bb);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    telemetry.addLine("Error");
-//                    telemetry.update();
-//                    state = State.EXAMPLE_B;
-//                    return;
-//                }
-//                String text = qrCodeResult.getText();
-
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
                 //copy pixel data from the Bitmap into the 'intArray' array
                 bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
