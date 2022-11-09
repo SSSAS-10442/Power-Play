@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 public class Lift {
 
     DcMotorEx motor;
+    static final int allowance = 5;
 
     Lift(DcMotorEx lift) {
         this.motor = lift;
@@ -21,7 +22,13 @@ public class Lift {
     }
 
     void stop() {
-        motor.setVelocity(0);
+        motor.setVelocity(1);
+    }
+
+    void checkShouldStop() {
+        if (Math.abs(motor.getCurrentPosition() - motor.getTargetPosition()) < allowance) {
+            stop();
+        }
     }
 
     void scoringL() {

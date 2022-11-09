@@ -3,8 +3,16 @@ package org.firstinspires.ftc.teamcode.main;
 import android.graphics.Bitmap;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Reader;
 import com.google.zxing.Result;
+import com.google.zxing.aztec.detector.Detector;
+import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.datamatrix.DataMatrixReader;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -134,25 +142,41 @@ public class Autonomous extends Main {
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
+//                int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
+//                //copy pixel data from the Bitmap into the 'intArray' array
+//                bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+//                LuminanceSource source = new com.google.zxing.RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
+//
+//                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
+//
+//                Result qrCodeResult;
+//                try {
+//                    qrCodeResult = new DataMatrixReader().decode(bb);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    telemetry.addLine("Error");
+//                    telemetry.update();
+//                    state = State.EXAMPLE_B;
+//                    return;
+//                }
+//                String text = qrCodeResult.getText();
+
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
                 //copy pixel data from the Bitmap into the 'intArray' array
                 bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-                LuminanceSource source = new com.google.zxing.RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
 
-                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
+                LuminanceSource source = new RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
 
-                Result qrCodeResult;
+                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source)); // HybridBinarizer(source).getBlackMatrix() returns a BitMatrix
+                Reader reader = new MultiFormatReader();
+
+                Result result = null;
                 try {
-                    qrCodeResult = new DataMatrixReader().decode(bb);
-                } catch (Exception e) {
+                    result = reader.decode(bb);
+                } catch (NotFoundException | ChecksumException | FormatException e) {
                     e.printStackTrace();
-                    telemetry.addLine("Error");
-                    telemetry.update();
-                    state = State.EXAMPLE_B;
-                    return;
                 }
-                String text = qrCodeResult.getText();
-                telemetry.addLine("QR Result: " + text);
+                telemetry.addLine("QR Result: " + result.getText());
                 telemetry.update();
                 state = State.EXAMPLE_A;
                 break;

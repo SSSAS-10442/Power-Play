@@ -80,9 +80,9 @@ public class DriverControlled extends Main {
     private void updateTelemetry() {
         telemetry.addData("State",state);
         telemetry.addData("Version", version);
-        telemetry.addLine("----------");
-        telemetry.addData("(x, y)", "(" + poseRR.getX() + ", " + poseRR.getY() + ")");
-        telemetry.addData("heading", poseRR.getHeading());
+//        telemetry.addLine("----------");
+//        telemetry.addData("(x, y)", "(" + poseRR.getX() + ", " + poseRR.getY() + ")");
+//        telemetry.addData("heading", poseRR.getHeading());
         telemetry.update();
     }
 
@@ -137,7 +137,7 @@ public class DriverControlled extends Main {
         lastkey = new LastKey(gamepad1);
 
         // Initialize RoadRunner
-        initRoadRunner();
+//        initRoadRunner();
 
         // Set state to HOME
         state = State.HOME;
@@ -169,9 +169,10 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift down
                 arm.runToPosition(0);
-//                lift.runToPosition(0);
+                lift.runToPosition(0);
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_up) {
@@ -183,6 +184,7 @@ public class DriverControlled extends Main {
                 claw.close();
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 // If dpad_up is pressed, go to SCORING_L state
                 // If dpad_dpwn is pressed, go to HOME state
@@ -198,9 +200,10 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_L position
                 arm.scoringL();
-//                lift.scoringL();
+                lift.scoringL();
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
@@ -223,9 +226,10 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_M position
                 arm.scoringM();
-//                lift.scoringM();
+                lift.scoringM();
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -247,9 +251,10 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_S position
                 arm.scoringS();
-//                lift.scoringS();
+                lift.scoringS();
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -271,9 +276,10 @@ public class DriverControlled extends Main {
 
                 // Bring arm and lift to SCORING_GROUND position
                 arm.scoringG();
-//                lift.scoringG();
+                lift.scoringG();
 
                 arm.checkShouldStop();
+                lift.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
