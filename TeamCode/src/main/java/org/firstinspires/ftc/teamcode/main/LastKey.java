@@ -6,33 +6,33 @@ public class LastKey {
 
     Gamepad gamepad;
 
-    boolean a = false;
-    boolean b = false;
-    boolean x = false;
-    boolean y = false;
+    public boolean a = false;
+    public boolean b = false;
+    public boolean x = false;
+    public boolean y = false;
 
-    boolean lb = false;
-    boolean rb = false;
+    public boolean lb = false;
+    public boolean rb = false;
 
-    double lt = 0;
-    double rt = 0;
+    public double lt = 0;
+    public double rt = 0;
 
-    double lx = 0;
-    double ly = 0;
-    double rx = 0;
-    double ry = 0;
+    public double lx = 0;
+    public double ly = 0;
+    public double rx = 0;
+    public double ry = 0;
 
-    boolean dpad_up = false;
-    boolean dpad_left = false;
-    boolean dpad_right = false;
-    boolean dpad_down = false;
+    public boolean dpad_up = false;
+    public boolean dpad_left = false;
+    public boolean dpad_right = false;
+    public boolean dpad_down = false;
 
     public LastKey(Gamepad gamepad) {
         this.gamepad = gamepad;
         update();
     }
 
-    void update() {
+    public void update() {
 
         a = gamepad.a;
         b = gamepad.b;
