@@ -12,10 +12,9 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Reader;
 import com.google.zxing.Result;
-import com.google.zxing.aztec.detector.Detector;
-import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.datamatrix.DataMatrixReader;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -28,15 +27,17 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Power-Play-Autonomous",group="Power-Play",preselectTeleOp="Power-Play")
-public class Autonomous extends Main {
+@Autonomous(name="Power-Play-Autonomous-Backup")
+public class BackupAutonomous extends Main {
 
     enum State {
         SET_VUFORIA_FRAME_QUEUE,
-        EXAMPLE_A,
-        EXAMPLE_B,
+        WAIT_TIME,
         DETECT_SIGNAL,
-        EXAMPLE_C,
+        MOVE_SIDEWAYS,
+        MOVE_FORWARD,
+        STOP,
+        KEEP_RETURNING,
         ;
     }
 
@@ -57,9 +58,6 @@ public class Autonomous extends Main {
 
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
-
-    StandardTrackingWheelLocalizer localizerRR;
-    Pose2d poseRR;
 
     private static final String[] LABELS = {
             "1 Bolt",
@@ -123,7 +121,7 @@ public class Autonomous extends Main {
     @Override
     public void start() {
 
-        state = State.DETECT_SIGNAL;
+        state = State.SET_VUFORIA_FRAME_QUEUE;
 
         runtime.reset();
 
@@ -136,14 +134,13 @@ public class Autonomous extends Main {
             case SET_VUFORIA_FRAME_QUEUE:
                 vuforia.setFrameQueueCapacity(1);
 
-                if (gamepad2.a) {
+                state = State.WAIT_TIME;
+                break;
+            case WAIT_TIME:
+                if (runtime.seconds() > 1) {
                     state = State.DETECT_SIGNAL;
                 }
                 break;
-            case EXAMPLE_A:
-                return;
-            case EXAMPLE_B:
-                return;
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
@@ -154,21 +151,27 @@ public class Autonomous extends Main {
                 LuminanceSource source = new RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
 
                 BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source)); // HybridBinarizer(source).getBlackMatrix() returns a BitMatrix
-                Reader reader = new MultiFormatReader();
+                MultiFormatReader reader = new MultiFormatReader();
 
                 Result result = null;
                 try {
                     result = reader.decode(bb);
-                } catch (NotFoundException | ChecksumException | FormatException e) {
+                } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
                 String text = result.getText();
                 telemetry.addLine("QR Result: " + text);
                 telemetry.update();
-                state = State.EXAMPLE_A;
+                state = State.KEEP_RETURNING;
                 break;
-            case EXAMPLE_C:
+            case MOVE_SIDEWAYS:
                 break;
+            case MOVE_FORWARD:
+                break;
+            case STOP:
+                break;
+            case KEEP_RETURNING:
+                return;
             default:
                 break;
         }
@@ -208,23 +211,4 @@ public class Autonomous extends Main {
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
     }
-
-    void initRoadRunner() {
-        // This is assuming you're using StandardTrackingWheelLocalizer.java
-        // Switch this class to something else (Like TwoWheeTrackingLocalizer.java) if your configuration is different
-        localizerRR = new StandardTrackingWheelLocalizer(hardwareMap);
-
-        // Set your initial pose to x: 10, y: 10, facing 90 degrees
-        localizerRR.setPoseEstimate(new Pose2d(10, 10, Math.toRadians(90)));
-    }
-
-    void updateRoadRunnerLocalizer() {
-        // Make sure to call myLocalizer.update() on *every* loop
-        // Increasing loop time by utilizing bulk reads and minimizing writes will increase your odometry accuracy
-        localizerRR.update();
-
-        // Retrieve your pose
-        poseRR = localizerRR.getPoseEstimate();
-    }
-
 }
