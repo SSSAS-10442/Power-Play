@@ -33,10 +33,12 @@ public class Autonomous extends Main {
 
     enum State {
         SET_VUFORIA_FRAME_QUEUE,
-        EXAMPLE_A,
-        EXAMPLE_B,
+        WAIT_TIME,
         DETECT_SIGNAL,
-        EXAMPLE_C,
+        SET_DETECTION,
+        MOVE_SIDEWAYS,
+        MOVE_FORWARD,
+        STOP,
         ;
     }
 
@@ -45,6 +47,7 @@ public class Autonomous extends Main {
     ElapsedTime runtime;
 
     int detected = 0; // 0 = not detected yet, 1 = position 1, 2 = position 2, 3 = position 3
+    String text = "";
 
     private final MotorsEx motors = new MotorsEx();
 
@@ -136,14 +139,13 @@ public class Autonomous extends Main {
             case SET_VUFORIA_FRAME_QUEUE:
                 vuforia.setFrameQueueCapacity(1);
 
-                if (gamepad2.a) {
-                    state = State.DETECT_SIGNAL;
+                state = State.WAIT_TIME;
+                break;
+            case WAIT_TIME:
+                if (runtime.seconds() > 1) {
+                    state =State.DETECT_SIGNAL;
                 }
                 break;
-            case EXAMPLE_A:
-                return;
-            case EXAMPLE_B:
-                return;
             case DETECT_SIGNAL:
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
@@ -154,20 +156,42 @@ public class Autonomous extends Main {
                 LuminanceSource source = new RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
 
                 BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source)); // HybridBinarizer(source).getBlackMatrix() returns a BitMatrix
-                Reader reader = new MultiFormatReader();
+                MultiFormatReader reader = new MultiFormatReader();
 
                 Result result = null;
                 try {
                     result = reader.decode(bb);
-                } catch (NotFoundException | ChecksumException | FormatException e) {
+                } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
-                String text = result.getText();
-                telemetry.addLine("QR Result: " + text);
-                telemetry.update();
-                state = State.EXAMPLE_A;
+                try {
+                    text = result.getText();
+                } catch (NullPointerException e) {
+                    break;
+                }
+                state = State.SET_DETECTION;
                 break;
-            case EXAMPLE_C:
+            case SET_DETECTION:
+                switch (text) {
+                    case "https://youtube.com/watch?v=dQw4w9WgXcQ":
+                        detected = 1;
+                        break;
+                    case "https://youtu.be/dQw4w9WgXcQ":
+                        detected = 2;
+                        break;
+                    case "https://youtu.be/dQw4w9WgXcQ?t=0":
+                        detected = 3;
+                        break;
+                    default:
+                        detected = 4;
+                        break;
+                }
+                break;
+            case MOVE_SIDEWAYS:
+                break;
+            case MOVE_FORWARD:
+                break;
+            case STOP:
                 break;
             default:
                 break;
@@ -177,6 +201,7 @@ public class Autonomous extends Main {
         telemetry.addLine("State: " + state);
         telemetry.addLine("Runtime: " + runtime);
         telemetry.addLine("Detected: " + detected);
+        telemetry.addLine("Text: " + text);
 
         telemetry.update();
 

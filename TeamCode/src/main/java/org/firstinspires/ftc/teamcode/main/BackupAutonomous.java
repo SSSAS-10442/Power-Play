@@ -34,10 +34,10 @@ public class BackupAutonomous extends Main {
         SET_VUFORIA_FRAME_QUEUE,
         WAIT_TIME,
         DETECT_SIGNAL,
+        SET_DETECTION,
         MOVE_SIDEWAYS,
         MOVE_FORWARD,
         STOP,
-        KEEP_RETURNING,
         ;
     }
 
@@ -46,6 +46,7 @@ public class BackupAutonomous extends Main {
     ElapsedTime runtime;
 
     int detected = 0; // 0 = not detected yet, 1 = position 1, 2 = position 2, 3 = position 3
+    String text = "";
 
     private final MotorsEx motors = new MotorsEx();
 
@@ -159,10 +160,28 @@ public class BackupAutonomous extends Main {
                 } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
-                String text = result.getText();
-                telemetry.addLine("QR Result: " + text);
-                telemetry.update();
-                state = State.KEEP_RETURNING;
+                try {
+                    text = result.getText();
+                } catch (NullPointerException e) {
+                    break;
+                }
+                state = State.SET_DETECTION;
+                break;
+            case SET_DETECTION:
+                switch (text) {
+                    case "https://www.youtube.com/watch?v=dQw4w9WgXcQ":
+                        detected = 1;
+                        break;
+                    case "https://youtu.be/dQw4w9WgXcQ":
+                        detected = 2;
+                        break;
+                    case "https://youtu.be/dQw4w9WgXcQ?t=0":
+                        detected = 3;
+                        break;
+                    default:
+                        detected = 4;
+                        break;
+                }
                 break;
             case MOVE_SIDEWAYS:
                 break;
@@ -170,8 +189,6 @@ public class BackupAutonomous extends Main {
                 break;
             case STOP:
                 break;
-            case KEEP_RETURNING:
-                return;
             default:
                 break;
         }
@@ -180,6 +197,7 @@ public class BackupAutonomous extends Main {
         telemetry.addLine("State: " + state);
         telemetry.addLine("Runtime: " + runtime);
         telemetry.addLine("Detected: " + detected);
+        telemetry.addLine("Text: " + text);
 
         telemetry.update();
 

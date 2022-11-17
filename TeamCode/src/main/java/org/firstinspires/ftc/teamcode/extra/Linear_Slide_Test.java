@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.extra;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,7 +12,8 @@ import org.firstinspires.ftc.teamcode.main.LastKey;
 import org.firstinspires.ftc.teamcode.main.Lift;
 import org.firstinspires.ftc.teamcode.main.Main;
 
-@TeleOp(name="Power Play", group="Power_Play")
+@Disabled
+@TeleOp(name="Linear-Slide-Test", group="Power-Play-Extras")
 public class Linear_Slide_Test extends Main {
  LastKey lastkey;
  private Lift lift = null;

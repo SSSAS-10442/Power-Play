@@ -50,9 +50,6 @@ public class DriverControlled extends Main {
     private double leftBackPower = 0;
     private double rightBackPower = 0;
 
-    StandardTrackingWheelLocalizer localizerRR;
-    Pose2d poseRR;
-
     private void driving() {
         driving(2000);
     }
@@ -84,24 +81,6 @@ public class DriverControlled extends Main {
 //        telemetry.addData("(x, y)", "(" + poseRR.getX() + ", " + poseRR.getY() + ")");
 //        telemetry.addData("heading", poseRR.getHeading());
         telemetry.update();
-    }
-
-    void initRoadRunner() {
-        // This is assuming you're using StandardTrackingWheelLocalizer.java
-        // Switch this class to something else (Like TwoWheeTrackingLocalizer.java) if your configuration is different
-        localizerRR = new StandardTrackingWheelLocalizer(hardwareMap);
-
-        // Set your initial pose to x: 10, y: 10, facing 90 degrees
-        localizerRR.setPoseEstimate(new Pose2d(10, 10, Math.toRadians(90)));
-    }
-
-    void updateRoadRunnerLocalizer() {
-        // Make sure to call myLocalizer.update() on *every* loop
-        // Increasing loop time by utilizing bulk reads and minimizing writes will increase your odometry accuracy
-        localizerRR.update();
-
-        // Retrieve your pose
-        poseRR = localizerRR.getPoseEstimate();
     }
 
     /**
@@ -158,8 +137,6 @@ public class DriverControlled extends Main {
      * */
     @Override
     public void loop() {
-
-        updateRoadRunnerLocalizer();
 
         // Begin our state machine
         switch (state) {
