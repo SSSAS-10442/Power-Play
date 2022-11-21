@@ -141,17 +141,19 @@ public class Autonomous extends Main {
                     text = "unknown";
                     state = State.SET_DETECTION;
                 }
+                // get bitmap from camera
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
+                // convert bitmap into a BinaryBitmap
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
-                //copy pixel data from the Bitmap into the 'intArray' array
                 bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-
                 LuminanceSource source = new RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),intArray);
+                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source));
 
-                BinaryBitmap bb = new BinaryBitmap(new HybridBinarizer(source)); // HybridBinarizer(source).getBlackMatrix() returns a BitMatrix
+                // create reader
                 MultiFormatReader reader = new MultiFormatReader();
 
+                // read image and get text
                 Result result = null;
                 try {
                     result = reader.decode(bb);
