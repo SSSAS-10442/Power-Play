@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class Arm {
 
-    DcMotorEx motor;
+    public DcMotorEx motor;
     static final int allowance = 5;
 
     public Arm(DcMotorEx arm) {
