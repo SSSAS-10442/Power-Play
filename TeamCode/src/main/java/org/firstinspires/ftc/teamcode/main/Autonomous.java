@@ -32,8 +32,6 @@ import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 public class Autonomous extends Main {
 
     enum State {
-        SET_VUFORIA_FRAME_QUEUE,
-        WAIT_TIME,
         DETECT_SIGNAL,
         SET_DETECTION,
         MOVE_SIDEWAYS,
@@ -100,6 +98,8 @@ public class Autonomous extends Main {
             tfod.setClippingMargins(0,0,0,0); // This will need to be updated
         }
 
+        vuforia.setFrameQueueCapacity(1);
+
         runtime = new ElapsedTime();
 
     }
@@ -136,16 +136,6 @@ public class Autonomous extends Main {
     public void loop() {
 
         switch (state) {
-            case SET_VUFORIA_FRAME_QUEUE:
-                vuforia.setFrameQueueCapacity(1);
-
-                state = State.WAIT_TIME;
-                break;
-            case WAIT_TIME:
-                if (runtime.seconds() > 1) {
-                    state =State.DETECT_SIGNAL;
-                }
-                break;
             case DETECT_SIGNAL:
                 if (runtime.seconds() > 10) {
                     text = "unknown";
