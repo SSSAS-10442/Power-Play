@@ -147,6 +147,10 @@ public class Autonomous extends Main {
                 }
                 break;
             case DETECT_SIGNAL:
+                if (runtime.seconds() > 10) {
+                    text = "unknown";
+                    state = State.SET_DETECTION;
+                }
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
 
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
