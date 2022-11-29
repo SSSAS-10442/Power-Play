@@ -2,19 +2,14 @@ package org.firstinspires.ftc.teamcode.main;
 
 import android.graphics.Bitmap;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -25,7 +20,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
-import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
 @Autonomous(name="Power-Play-Autonomous-Backup")
 public class BackupAutonomous extends Main {
