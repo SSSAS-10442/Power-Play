@@ -179,9 +179,6 @@ public class DriverControlled extends Main {
                 arm.scoringL();
                 lift.scoringL();
 
-                arm.checkShouldStop();
-                lift.checkShouldStop();
-
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -205,9 +202,6 @@ public class DriverControlled extends Main {
                 arm.scoringM();
                 lift.scoringM();
 
-                arm.checkShouldStop();
-                lift.checkShouldStop();
-
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
@@ -230,9 +224,6 @@ public class DriverControlled extends Main {
                 arm.scoringS();
                 lift.scoringS();
 
-                arm.checkShouldStop();
-                lift.checkShouldStop();
-
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
@@ -254,9 +245,6 @@ public class DriverControlled extends Main {
                 // Bring arm and lift to SCORING_GROUND position
                 arm.scoringG();
                 lift.scoringG();
-
-                arm.checkShouldStop();
-                lift.checkShouldStop();
 
                 if (gamepad1.dpad_down) {
                     claw.open();

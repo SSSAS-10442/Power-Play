@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.extra;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.main.Arm;
 import org.firstinspires.ftc.teamcode.main.Lift;
 
+@Disabled
 @TeleOp(name="CheckArmAndLiftPositions", group="Power-Play-Extra")
 public class CheckArmAndLiftPositions extends OpMode {
 

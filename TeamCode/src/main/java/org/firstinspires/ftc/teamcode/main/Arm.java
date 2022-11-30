@@ -7,13 +7,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class Arm {
 
     public DcMotorEx motor;
-    static final int allowance = 5;
+    static final int allowance = 1;
 
     public Arm(DcMotorEx arm) {
         this.motor = arm;
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
@@ -26,7 +25,7 @@ public class Arm {
     }
 
     void stop() {
-        motor.setVelocity(1);
+        motor.setVelocity(0);
     }
 
     void checkShouldStop() {
@@ -39,30 +38,35 @@ public class Arm {
         motor.setTargetPosition(Main.ARM_SCORING_L);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
+        checkShouldStop();
     }
 
     void scoringM() {
         motor.setTargetPosition(Main.ARM_SCORING_M);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
+        checkShouldStop();
     }
 
     void scoringS() {
         motor.setTargetPosition(Main.ARM_SCORING_S);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
+        checkShouldStop();
     }
 
     void scoringG() {
         motor.setTargetPosition(Main.ARM_SCORING_GROUND);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
+        checkShouldStop();
     }
 
     void runToPosition(int position) {
         motor.setTargetPosition(position);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
+        checkShouldStop();
     }
 
 }

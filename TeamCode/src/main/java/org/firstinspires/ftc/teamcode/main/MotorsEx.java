@@ -9,27 +9,27 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * */
 public class MotorsEx {
 
-    DcMotorEx leftFront;
-    DcMotorEx rightFront;
-    DcMotorEx leftBack;
-    DcMotorEx rightBack;
+    public DcMotorEx leftFront;
+    public DcMotorEx rightFront;
+    public DcMotorEx leftBack;
+    public DcMotorEx rightBack;
 
-    MotorsEx() {
+    public MotorsEx() {
 
     }
 
-    MotorsEx(DcMotorEx leftFront, DcMotorEx rightFront, DcMotorEx leftBack, DcMotorEx rightBack) {
+    public MotorsEx(DcMotorEx leftFront, DcMotorEx rightFront, DcMotorEx leftBack, DcMotorEx rightBack) {
         this.leftFront = leftFront;
         this.leftBack = leftBack;
         this.rightFront = rightFront;
         this.rightBack = rightBack;
     }
 
-    DcMotorEx[] all() {
+    public DcMotorEx[] all() {
         return new DcMotorEx[] {this.leftFront, this.leftBack, this.rightFront, this.rightBack};
     }
 
-    void setRunMode(DcMotor.RunMode runMode) {
+    public void setRunMode(DcMotor.RunMode runMode) {
         for (DcMotorEx motor: all()) {
             motor.setMode(runMode);
         }
