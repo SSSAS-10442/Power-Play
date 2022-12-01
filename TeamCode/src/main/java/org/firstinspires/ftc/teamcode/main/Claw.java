@@ -11,7 +11,7 @@ public class Claw {
     }
 
     void close() {
-        servo.setPosition(0.4);
+        servo.setPosition(0.25);
     }
 
     void open() {

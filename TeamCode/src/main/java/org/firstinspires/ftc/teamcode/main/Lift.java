@@ -8,6 +8,7 @@ public class Lift {
 
     public DcMotorEx motor;
     static final int allowance = 1;
+    public int mod = 0;
 
     public Lift(DcMotorEx lift) {
         this.motor = lift;
@@ -17,7 +18,7 @@ public class Lift {
     }
 
     void go() {
-        go(500);
+        go(3000);
     }
 
     void go(int velocity) {
@@ -34,39 +35,33 @@ public class Lift {
         }
     }
 
+    boolean isValidMod(int position) {
+        return position + mod > 0;
+    }
+
     void scoringL() {
-        motor.setTargetPosition(Main.LIFT_SCORING_L);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        go();
-        checkShouldStop();
+        this.runToPosition(Main.LIFT_SCORING_L + mod);
     }
 
     void scoringM() {
-        motor.setTargetPosition(Main.LIFT_SCORING_M);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        go();
-        checkShouldStop();
+        this.runToPosition(Main.LIFT_SCORING_M + mod);
     }
 
     void scoringS() {
-        motor.setTargetPosition(Main.LIFT_SCORING_S);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        go();
-        checkShouldStop();
+        this.runToPosition(Main.LIFT_SCORING_S + mod);
     }
 
     void scoringG() {
-        motor.setTargetPosition(Main.LIFT_SCORING_GROUND);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        go();
-        checkShouldStop();
+        this.runToPosition(Main.LIFT_SCORING_GROUND + mod);
     }
 
-    void runToPosition(int position) {
-        motor.setTargetPosition(position);
+    public void runToPosition(int position) {
+        if (!isValidMod(position + mod)) {
+            motor.setTargetPosition(0);
+        }
+        motor.setTargetPosition(position + mod);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
 }

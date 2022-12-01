@@ -14,8 +14,6 @@ public class DriverControlled extends Main {
 
     enum State {
         HOME,
-        GRAB_CONE,
-        SCORING_GROUND,
         SCORING_S,
         SCORING_M,
         SCORING_L,
@@ -75,12 +73,39 @@ public class DriverControlled extends Main {
      * Update telemetry with useful information like the state and inputs.
      * */
     private void updateTelemetry() {
-        telemetry.addData("State",state);
+        telemetry.addData("State", state);
         telemetry.addData("Version", version);
+        telemetry.addData("Lift Mod", lift.mod);
 //        telemetry.addLine("----------");
 //        telemetry.addData("(x, y)", "(" + poseRR.getX() + ", " + poseRR.getY() + ")");
 //        telemetry.addData("heading", poseRR.getHeading());
         telemetry.update();
+    }
+
+    private void updateLiftMod() {
+        if (gamepad1.y) {
+            lift.mod += 5;
+        } if (gamepad1.x) {
+            lift.mod -= 5;
+        }
+    }
+
+    private void checkArmMovement() {
+        if (gamepad1.b) {
+            arm.motor.setPower(1);
+        } else if (gamepad1.a) {
+            arm.motor.setPower(-0.8);
+        } else {
+            arm.motor.setPower(0);
+        }
+    }
+
+    private void checkClawKeybinds() {
+        if (gamepad1.x) {
+            claw.close();
+        } else if (gamepad1.y) {
+            claw.open();
+        }
     }
 
     /**
@@ -108,6 +133,7 @@ public class DriverControlled extends Main {
 
         // Initialize arm
         arm = new Arm(hardwareMap.get(DcMotorEx.class, "arm"));
+        arm.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // REMOVE THIS ONCE WE GET AN ENCODER ON ARM
 
         // Initialize lift
         lift = new Lift(hardwareMap.get(DcMotorEx.class,"lift"));
@@ -142,30 +168,23 @@ public class DriverControlled extends Main {
         switch (state) {
             case HOME:
                 driving(); // Updates driving using gamepad1 inputs
-                claw.open(); // Open claw
+                checkClawKeybinds();
 
                 // Bring arm and lift down
-                arm.runToPosition(0);
+//                arm.runToPosition(0);
                 lift.runToPosition(0);
 
-                arm.checkShouldStop();
-                lift.checkShouldStop();
+                updateLiftMod();
+
+                // This is temporary. We only need this until we have an encoder on the arm motor
+                checkArmMovement();
 
                 // If dpad_up is pressed, switch to GRAB_CONE state
-                if (gamepad1.dpad_up) {
-                    state = State.GRAB_CONE;
-                }
-                break;
-            case GRAB_CONE:
-                driving();
-                claw.close();
-
-                arm.checkShouldStop();
-                lift.checkShouldStop();
-
-                // If dpad_up is pressed, go to SCORING_L state
-                // If dpad_dpwn is pressed, go to HOME state
-                if (!gamepad1.dpad_up) {
+                if (gamepad1.dpad_left) {
+                    state = State.SCORING_S;
+                } if (gamepad1.dpad_up) {
+                    state = State.SCORING_M;
+                } if (gamepad1.dpad_right) {
                     state = State.SCORING_L;
                 } if (gamepad1.dpad_down) {
                     state = State.HOME;
@@ -173,92 +192,86 @@ public class DriverControlled extends Main {
                 break;
             case SCORING_L:
                 driving();
-                claw.close();
+                checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_L position
-                arm.scoringL();
+//                arm.scoringL();
                 lift.scoringL();
+
+                updateLiftMod();
+
+                // This is temporary. We only need this until we have an encoder on the arm motor
+                checkArmMovement();
 
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
 
-                // If dpad_up is pressed, go to SCORING_M state
-                // If dpad_down is unpressed, go to HOME state
-                if (gamepad1.dpad_up && !lastkey.dpad_up) {
+                if (gamepad1.dpad_left) {
+                    state = State.SCORING_S;
+                } if (gamepad1.dpad_up) {
                     state = State.SCORING_M;
-                    break;
-                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                } if (gamepad1.dpad_right) {
+                    state = State.SCORING_L;
+                } if (gamepad1.dpad_down) {
                     state = State.HOME;
-                    break;
                 }
                 break;
             case SCORING_M:
                 driving();
-                claw.close();
+                checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_M position
-                arm.scoringM();
+//                arm.scoringM();
                 lift.scoringM();
+
+                updateLiftMod();
+
+                // This is temporary. We only need this until we have an encoder on the arm motor
+                checkArmMovement();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
 
-                // If dpad_up is pressed, go to SCORING_S state
-                // If dpad_down is unpressed, go to HOME state
-                if (gamepad1.dpad_up && !lastkey.dpad_up) {
+                if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
-                    break;
-                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                } if (gamepad1.dpad_up) {
+                    state = State.SCORING_M;
+                } if (gamepad1.dpad_right) {
+                    state = State.SCORING_L;
+                } if (gamepad1.dpad_down) {
                     state = State.HOME;
-                    break;
                 }
                 break;
             case SCORING_S:
                 driving();
-                claw.close();
+                checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_S position
-                arm.scoringS();
+//                arm.scoringS();
                 lift.scoringS();
 
+                updateLiftMod();
+
+                // This is temporary. We only need this until we have an encoder on the arm motor
+                checkArmMovement();
+
                 if (gamepad1.dpad_down) {
                     claw.open();
                 }
 
-                // If dpad_up is pressed, go to SCORING_GROUND state
-                // If dpad_down is unpressed, go to HOME state
-                if (gamepad1.dpad_up && !lastkey.dpad_up) {
-                    state = State.SCORING_GROUND;
-                    break;
-                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
+                if (gamepad1.dpad_left) {
+                    state = State.SCORING_S;
+                } if (gamepad1.dpad_up) {
+                    state = State.SCORING_M;
+                } if (gamepad1.dpad_right) {
+                    state = State.SCORING_L;
+                } if (gamepad1.dpad_down) {
                     state = State.HOME;
-                    break;
                 }
                 break;
-            case SCORING_GROUND:
-                driving();
-                claw.close();
-
-                // Bring arm and lift to SCORING_GROUND position
-                arm.scoringG();
-                lift.scoringG();
-
-                if (gamepad1.dpad_down) {
-                    claw.open();
-                }
-
-                // If dpad_up is pressed, go to SCORING_L state
-                // If dpad_down is unpressed, go to HOME state
-                if (gamepad1.dpad_up && !lastkey.dpad_up) {
-                    state = State.SCORING_L;
-                    break;
-                } if (!gamepad1.dpad_down && lastkey.dpad_down) {
-                    state = State.HOME;
-                    break;
-                }
             default:
                 // If somehow we get to the default, go to HOME state
                 state = State.HOME;

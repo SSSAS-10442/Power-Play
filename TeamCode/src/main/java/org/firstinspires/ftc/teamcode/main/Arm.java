@@ -38,35 +38,30 @@ public class Arm {
         motor.setTargetPosition(Main.ARM_SCORING_L);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
     void scoringM() {
         motor.setTargetPosition(Main.ARM_SCORING_M);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
     void scoringS() {
         motor.setTargetPosition(Main.ARM_SCORING_S);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
     void scoringG() {
         motor.setTargetPosition(Main.ARM_SCORING_GROUND);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
     void runToPosition(int position) {
         motor.setTargetPosition(position);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
-        checkShouldStop();
     }
 
 }
