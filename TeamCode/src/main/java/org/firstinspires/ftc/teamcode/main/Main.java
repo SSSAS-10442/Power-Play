@@ -21,8 +21,8 @@ public abstract class Main extends OpMode {
     static int ARM_SCORING_GROUND = 50;
 
     static int LIFT_SCORING_L = 2500;
-    static int LIFT_SCORING_M = 1700;
-    static int LIFT_SCORING_S = 600;
+    static int LIFT_SCORING_M = 2500;
+    static int LIFT_SCORING_S = 1500;
     static int LIFT_SCORING_GROUND = 0;
 
 }

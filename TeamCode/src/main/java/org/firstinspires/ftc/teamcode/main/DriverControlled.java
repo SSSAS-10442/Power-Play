@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
 @TeleOp(name="Power-Play",group="Power-Play")
@@ -22,6 +23,8 @@ public class DriverControlled extends Main {
 
     // Create and initialize a new State object
     private State state;
+
+    SampleMecanumDrive smd = null;
 
     LastKey lastkey;
 
@@ -64,9 +67,16 @@ public class DriverControlled extends Main {
      * drive, strafe, and rotate are then multiplied by max
      * */
     private void driving(int max) {
-        drive = -gamepad1.left_stick_y * max;
-        strafe = gamepad1.left_stick_x * max;
-        rotate = gamepad1.right_stick_x * max / 2;
+//        drive = -gamepad1.left_stick_y * max;
+//        strafe = gamepad1.left_stick_x * max;
+//        rotate = gamepad1.right_stick_x * max / 2;
+        smd.setWeightedDrivePower(
+                new Pose2d(
+                        -gamepad1.left_stick_y,
+                        -gamepad1.left_stick_x,
+                        -gamepad1.right_stick_x / 2
+                )
+        );
     }
 
     /**
@@ -83,9 +93,9 @@ public class DriverControlled extends Main {
     }
 
     private void updateLiftMod() {
-        if (gamepad1.y) {
+        if (gamepad1.right_bumper) {
             lift.mod += 5;
-        } if (gamepad1.x) {
+        } if (gamepad1.left_bumper) {
             lift.mod -= 5;
         }
     }
@@ -119,11 +129,15 @@ public class DriverControlled extends Main {
         motors.leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
         motors.rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
 
+        smd = new SampleMecanumDrive(hardwareMap);
+
         // Set motor directions
         motors.leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         motors.leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        motors.setRunMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Run using encoder
         motors.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -277,6 +291,8 @@ public class DriverControlled extends Main {
                 state = State.HOME;
                 break;
         }
+
+        smd.update();
 
         // Update telemetry
         updateTelemetry();

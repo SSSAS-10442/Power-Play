@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.extra;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,10 +12,10 @@ import org.firstinspires.ftc.teamcode.main.Lift;
 import org.firstinspires.ftc.teamcode.main.Main;
 import org.firstinspires.ftc.teamcode.main.MotorsEx;
 
+//@Disabled
 @TeleOp(name="FindPositions", group="Power-Play-Extra")
 public class FindPositions extends OpMode {
 
-    MotorsEx motors = null;
     DcMotorEx arm = null;
     DcMotorEx lift = null;
 
@@ -23,17 +24,8 @@ public class FindPositions extends OpMode {
     @Override
     public void init() {
 
-        motors = new MotorsEx(
-                hardwareMap.get(DcMotorEx.class, "leftFront"),
-                hardwareMap.get(DcMotorEx.class, "rightFront"),
-                hardwareMap.get(DcMotorEx.class, "leftBack"),
-                hardwareMap.get(DcMotorEx.class, "rightBack")
-        );
-
         arm = hardwareMap.get(DcMotorEx.class, "arm");
         lift = hardwareMap.get(DcMotorEx.class, "lift");
-
-        last = new LastKey(gamepad1);
 
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -50,30 +42,23 @@ public class FindPositions extends OpMode {
     public void loop() {
 
         if (gamepad1.x) {
-            arm.setTargetPosition(arm.getTargetPosition() + 1);
+            arm.setTargetPosition(arm.getTargetPosition() + 5);
             arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm.setVelocity(2000);
         } else if (gamepad1.y) {
-            arm.setTargetPosition(arm.getTargetPosition() - 1);
+            arm.setTargetPosition(arm.getTargetPosition() - 5);
             arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm.setVelocity(2000);
         }
 
         if (gamepad1.b) {
-            lift.setTargetPosition(lift.getTargetPosition() + 1);
+            lift.setTargetPosition(lift.getTargetPosition() + 5);
             lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(2000);
         } else if (gamepad1.a) {
-            lift.setTargetPosition(lift.getTargetPosition() - 1);
+            lift.setTargetPosition(lift.getTargetPosition() - 5);
             lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
-
-        if (Math.abs(arm.getTargetPosition() - arm.getCurrentPosition()) <= 10) {
-            arm.setVelocity(0);
-        } else {
-            arm.setVelocity(300);
-        }
-        if (Math.abs(lift.getTargetPosition() - lift.getCurrentPosition()) <= 10) {
-            lift.setVelocity(0);
-        } else {
-            lift.setVelocity(300);
+            lift.setVelocity(2000);
         }
 
         if (gamepad1.left_trigger > 0.2) {

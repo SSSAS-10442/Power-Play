@@ -58,8 +58,9 @@ public class Lift {
     public void runToPosition(int position) {
         if (!isValidMod(position + mod)) {
             motor.setTargetPosition(0);
+        } else {
+            motor.setTargetPosition(position + mod);
         }
-        motor.setTargetPosition(position + mod);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
     }
