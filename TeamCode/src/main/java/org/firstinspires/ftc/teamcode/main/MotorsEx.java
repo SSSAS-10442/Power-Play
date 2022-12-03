@@ -23,6 +23,9 @@ public class MotorsEx {
         this.leftBack = leftBack;
         this.rightFront = rightFront;
         this.rightBack = rightBack;
+        for (DcMotorEx motor: this.all()) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
     }
 
     public DcMotorEx[] all() {

@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.extra;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.main.Lift;
 
+@Disabled
 @TeleOp(group="Power-Play-Extra")
 public class RaiseLift extends OpMode {
 

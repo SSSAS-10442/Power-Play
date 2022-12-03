@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.main.Lift;
 import org.firstinspires.ftc.teamcode.main.Main;
 import org.firstinspires.ftc.teamcode.main.MotorsEx;
 
-//@Disabled
+@Disabled
 @TeleOp(name="FindPositions", group="Power-Play-Extra")
 public class FindPositions extends OpMode {
 

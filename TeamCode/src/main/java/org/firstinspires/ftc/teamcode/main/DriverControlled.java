@@ -51,32 +51,24 @@ public class DriverControlled extends Main {
     private double leftBackPower = 0;
     private double rightBackPower = 0;
 
-    private void driving() {
-        driving(2000);
-    }
-
-    /**
-     * Calls driving() with parameter max set to 0
-     * */
-    private void noDriving() {
-        driving(0);
-    }
-
     /**
      * Updates the drive, strafe, and rotate variables to be used in the calculations for the power variables.
      * drive, strafe, and rotate are then multiplied by max
      * */
-    private void driving(int max) {
-//        drive = -gamepad1.left_stick_y * max;
-//        strafe = gamepad1.left_stick_x * max;
-//        rotate = gamepad1.right_stick_x * max / 2;
+    private void driving() {
+        double multiplier = 1.0;
+        if (gamepad1.right_trigger > 0.2) {
+            multiplier *= 0.5;
+        }
         smd.setWeightedDrivePower(
                 new Pose2d(
-                        -gamepad1.left_stick_y,
-                        -gamepad1.left_stick_x,
-                        -gamepad1.right_stick_x / 2
+                        -gamepad1.left_stick_y * multiplier,
+                        -gamepad1.left_stick_x * multiplier,
+                        -gamepad1.right_stick_x * multiplier
                 )
         );
+
+        smd.update();
     }
 
     /**
@@ -86,6 +78,7 @@ public class DriverControlled extends Main {
         telemetry.addData("State", state);
         telemetry.addData("Version", version);
         telemetry.addData("Lift Mod", lift.mod);
+        telemetry.addData("Arm Mod", lift.mod);
 //        telemetry.addLine("----------");
 //        telemetry.addData("(x, y)", "(" + poseRR.getX() + ", " + poseRR.getY() + ")");
 //        telemetry.addData("heading", poseRR.getHeading());
@@ -97,6 +90,17 @@ public class DriverControlled extends Main {
             lift.mod += 5;
         } if (gamepad1.left_bumper) {
             lift.mod -= 5;
+        }
+    }
+
+    private void updateArmMod() {
+        if (gamepad1.b) {
+            arm.mod += 50;
+        } else if (gamepad1.a) {
+            arm.mod -= 50;
+        }
+        if (arm.mod < 0) {
+            arm.mod = 0;
         }
     }
 
@@ -140,7 +144,7 @@ public class DriverControlled extends Main {
         motors.setRunMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Run using encoder
-        motors.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motors.setRunMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Initialize claw
         claw = new Claw(hardwareMap.get(Servo.class, "claw"));
@@ -178,20 +182,22 @@ public class DriverControlled extends Main {
     @Override
     public void loop() {
 
+        driving();
+
         // Begin our state machine
         switch (state) {
             case HOME:
-                driving(); // Updates driving using gamepad1 inputs
                 checkClawKeybinds();
 
                 // Bring arm and lift down
-//                arm.runToPosition(0);
+                arm.runToPosition(0);
                 lift.runToPosition(0);
 
                 updateLiftMod();
 
-                // This is temporary. We only need this until we have an encoder on the arm motor
-                checkArmMovement();
+//                // This is temporary. We only need this until we have an encoder on the arm motor
+//                checkArmMovement();
+                updateArmMod();
 
                 // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_left) {
@@ -205,17 +211,16 @@ public class DriverControlled extends Main {
                 }
                 break;
             case SCORING_L:
-                driving();
                 checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_L position
-//                arm.scoringL();
+                arm.scoringL();
                 lift.scoringL();
 
                 updateLiftMod();
 
-                // This is temporary. We only need this until we have an encoder on the arm motor
-                checkArmMovement();
+//                // This is temporary. We only need this until we have an encoder on the arm motor
+//                checkArmMovement();
 
                 // If dpad_down is held, open claw
                 if (gamepad1.dpad_down) {
@@ -233,17 +238,16 @@ public class DriverControlled extends Main {
                 }
                 break;
             case SCORING_M:
-                driving();
                 checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_M position
-//                arm.scoringM();
+                arm.scoringM();
                 lift.scoringM();
 
                 updateLiftMod();
 
-                // This is temporary. We only need this until we have an encoder on the arm motor
-                checkArmMovement();
+//                // This is temporary. We only need this until we have an encoder on the arm motor
+//                checkArmMovement();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -260,17 +264,16 @@ public class DriverControlled extends Main {
                 }
                 break;
             case SCORING_S:
-                driving();
                 checkClawKeybinds();
 
                 // Bring arm and lift to SCORING_S position
-//                arm.scoringS();
+                arm.scoringS();
                 lift.scoringS();
 
                 updateLiftMod();
 
-                // This is temporary. We only need this until we have an encoder on the arm motor
-                checkArmMovement();
+//                // This is temporary. We only need this until we have an encoder on the arm motor
+//                checkArmMovement();
 
                 if (gamepad1.dpad_down) {
                     claw.open();
@@ -292,23 +295,23 @@ public class DriverControlled extends Main {
                 break;
         }
 
-        smd.update();
+//        smd.update();
 
         // Update telemetry
         updateTelemetry();
         lastkey.update();
 
-        // Calculate power for each wheel
-        leftFrontPower = drive + rotate + strafe;
-        leftBackPower = drive + rotate - strafe;
-        rightFrontPower = drive - rotate - strafe;
-        rightBackPower = drive - rotate + strafe;
-
-        // Send power to wheels
-        motors.leftFront.setVelocity(leftFrontPower);
-        motors.leftBack.setVelocity(leftBackPower);
-        motors.rightFront.setVelocity(rightFrontPower);
-        motors.rightBack.setVelocity(rightBackPower);
+//        // Calculate power for each wheel
+//        leftFrontPower = drive + rotate + strafe;
+//        leftBackPower = drive + rotate - strafe;
+//        rightFrontPower = drive - rotate - strafe;
+//        rightBackPower = drive - rotate + strafe;
+//
+//        // Send power to wheels
+//        motors.leftFront.setVelocity(leftFrontPower);
+//        motors.leftBack.setVelocity(leftBackPower);
+//        motors.rightFront.setVelocity(rightFrontPower);
+//        motors.rightBack.setVelocity(rightBackPower);
 
     }
 

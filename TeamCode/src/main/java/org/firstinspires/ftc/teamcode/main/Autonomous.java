@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.main;
 import android.graphics.Bitmap;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
@@ -10,8 +11,11 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -20,16 +24,20 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Power-Play-Autonomous",group="Power-Play",preselectTeleOp="Power-Play")
 public class Autonomous extends Main {
 
     enum State {
+        WAIT_FOR_ELEMENT,
         DETECT_SIGNAL,
         SET_DETECTION,
-        MOVE_SIDEWAYS,
-        MOVE_FORWARD,
+        SET_TRAJECTORIES,
+        MOVEMENT,
+        MOVEMENT_2,
         STOP,
         ;
     }
@@ -38,10 +46,21 @@ public class Autonomous extends Main {
 
     ElapsedTime runtime;
 
+    SampleMecanumDrive smd = null;
+    Trajectory traj1;
+    Trajectory traj2;
+    Trajectory traj3;
+    Trajectory traj4;
+    Trajectory traj5;
+
+    boolean firstFrame = true;
+
     int detected = 0; // 0 = not detected yet, 1 = position 1, 2 = position 2, 3 = position 3
     String text = "";
 
     private final MotorsEx motors = new MotorsEx();
+    private Lift lift = null;
+    private Claw claw = null;
 
     IMU imu = new IMU(this);
 
@@ -74,7 +93,18 @@ public class Autonomous extends Main {
         motors.leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
         motors.rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
+        for (DcMotorEx motor: motors.all()) {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setTargetPosition(0);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+
+        lift = new Lift(hardwareMap.get(DcMotorEx.class, "lift"));
+        claw = new Claw(hardwareMap.get(Servo.class, "claw"));
+
+        webcam = hardwareMap.get(CameraName.class, "Webcam 1");
+
+        smd = new SampleMecanumDrive(hardwareMap);
 
         imu.initIMU();
 
@@ -101,16 +131,13 @@ public class Autonomous extends Main {
     @Override
     public void init_loop() {
 
+        telemetry.addLine("SELECT A VERSION RIGHT NOW!!! A = Left, B = Right");
         telemetry.addLine("Version: " + version);
 
         if (gamepad1.a) {
-            version = Version.RED_LEFT;
+            version = Version.LEFT;
         } if (gamepad1.b) {
-            version = Version.RED_RIGHT;
-        } if (gamepad1.x) {
-            version = Version.BLUE_LEFT;
-        } if (gamepad1.y) {
-            version = Version.BLUE_RIGHT;
+            version = Version.RIGHT;
         }
 
         telemetry.update();
@@ -130,10 +157,20 @@ public class Autonomous extends Main {
     public void loop() {
 
         switch (state) {
+            case WAIT_FOR_ELEMENT:
+                if (runtime.seconds() > 1) {
+                    state = State.DETECT_SIGNAL;
+                    firstFrame = true;
+                    break;
+                }
+                firstFrame = false;
+                break;
             case DETECT_SIGNAL:
                 if (runtime.seconds() > 10) {
                     text = "unknown";
                     state = State.SET_DETECTION;
+                    firstFrame = true;
+                    break;
                 }
                 // get bitmap from camera
                 Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
@@ -146,6 +183,8 @@ public class Autonomous extends Main {
 
                 // create reader
                 MultiFormatReader reader = new MultiFormatReader();
+
+                firstFrame = false;
 
                 // read image and get text
                 Result result = null;
@@ -160,6 +199,7 @@ public class Autonomous extends Main {
                     break;
                 }
                 state = State.SET_DETECTION;
+                firstFrame = true;
                 break;
             case SET_DETECTION:
                 switch (text) {
@@ -176,14 +216,74 @@ public class Autonomous extends Main {
                         detected = 4;
                         break;
                 }
+                state = State.SET_TRAJECTORIES;
+                firstFrame = true;
                 break;
-            case MOVE_SIDEWAYS:
+            case SET_TRAJECTORIES:
+                traj1 = smd.trajectoryBuilder(new Pose2d())
+                        .forward(10)
+                        .build();
+
+                if (version.equals(Version.RIGHT)) {
+                    traj2 = smd.trajectoryBuilder(traj1.end())
+                            .strafeLeft(5)
+                            .build();
+                } else {
+                    traj2 = smd.trajectoryBuilder(traj1.end())
+                            .strafeRight(5)
+                            .build();
+                }
+
+                traj3 = smd.trajectoryBuilder(traj2.end())
+                        .forward(2)
+                        .build();
+
+                traj4 = smd.trajectoryBuilder(traj3.end())
+                        .back(2)
+                        .build();
+
+                if (detected == 1) {
+                    traj5 = smd.trajectoryBuilder(traj4.end())
+                            .strafeLeft(10)
+                            .build();
+                } else if (detected == 2 || detected == 4) {
+                    traj5 = null;
+                } else {
+                    traj5 = smd.trajectoryBuilder(traj4.end())
+                            .strafeRight(10)
+                            .build();
+                }
+                state = State.MOVEMENT;
                 break;
-            case MOVE_FORWARD:
+            case MOVEMENT:
+                if (firstFrame) {
+                    claw.close();
+                    smd.followTrajectory(traj1); // forward
+                    smd.followTrajectory(traj2); // sideways
+                    smd.followTrajectory(traj3); // forward (slight)
+                    lift.scoringM();
+                }
+                if (Math.abs(lift.motor.getTargetPosition() - lift.motor.getCurrentPosition()) < 5) {
+                    state = State.MOVEMENT_2;
+                    firstFrame = true;
+                    break;
+                }
+                firstFrame = false;
+                break;
+            case MOVEMENT_2:
+                claw.open();
+                lift.runToPosition(0);
+                smd.followTrajectory(traj4); // back (slight)
+                if (traj5 != null) {
+                    smd.followTrajectory(traj5); // sideways
+                }
+
+                state = State.STOP;
                 break;
             case STOP:
                 break;
             default:
+                state = State.STOP;
                 break;
         }
 
