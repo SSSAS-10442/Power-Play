@@ -27,15 +27,17 @@ import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
-@Disabled
+//@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Power-Play-Autonomous",group="Power-Play",preselectTeleOp="Power-Play")
 public class Autonomous extends Main {
 
     enum State {
+        STARTING_MOVEMENT,
         WAIT_FOR_ELEMENT,
         DETECT_SIGNAL,
         SET_DETECTION,
         SET_TRAJECTORIES,
+        TIME_BASED_MOVEMENT,
         MOVEMENT,
         MOVEMENT_2,
         STOP,
@@ -47,11 +49,6 @@ public class Autonomous extends Main {
     ElapsedTime runtime;
 
     SampleMecanumDrive smd = null;
-    Trajectory traj1;
-    Trajectory traj2;
-    Trajectory traj3;
-    Trajectory traj4;
-    Trajectory traj5;
 
     boolean firstFrame = true;
 
@@ -64,10 +61,10 @@ public class Autonomous extends Main {
 
     IMU imu = new IMU(this);
 
-    public static final String VUFORIA_KEY = "AbKdfgn/////AAABmUwUEpbO9EDrlhxJl1yQGb87fcS3l27IKj8Y4mqrbhrHnM4bscBBBLlRPyUn/9cGTLFxs76UUgqnZ/nQenLu++B4lsjlLdq3f8M3oI+fbqITBOnMCYbNFRtsVOdgpJzVkrRarkFnMKN7UPpMKs4xI0t0ufb+hz+0H7d1GnkMtYRHG/n1NmSUCN5uW6seDdyIi0yObCByy/uM8grVrJQbTNEiAjlBZ6ahKtgWoGSmnhjkD4tCgtLTHRMUKoCOd6yAoFdrLI6tVL2JUAGuaF9X81ryvKPk5m4bNXHDxjSqv3gpeuQKOhBnnmgnwwYuy2H65aspPk6mO/nRCp6esV75TK2ASBtn0AI5I0XEIUSxIb5P";
+    public static final String VUFORIA_KEY = "AUSBY5z/////AAABmUOC52AJv0GOqfnlyjbd7h+LxEPkJlirbhJF8t0uZqXeuSkDRSypxxpINhoFZfuGIYVYJ44HHOx6rZnFa0V7PAd180mC9LDIOAR+PyVJ8T8DcimfzUe0iMAg/Ihek+5YjEW9B7XdX5Eknq3ixlhNR6lcUZfoAp5eEZ/Zjvw+OmmHI8h0yswNVdKKuqp5M5zPRlRB8Fo+IsMsvlMbK/WzHTMIFkuxceZyUQ/RBm2D4VpZXNRys6y9E8iblfPtdd7EjrJB6cpO5sDLQS5iYCqp5G9KkF3pimQrQ+Ge+SyuW1aZ0vGJvAcm3M2p1Z1gpUtVN5W1wLWPp4woLaN/q48CWKEddDMDrKDqkMRjhrJlVi52";
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
 
-    CameraName webcam;
+    WebcamName webcam;
 
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
@@ -102,7 +99,7 @@ public class Autonomous extends Main {
         lift = new Lift(hardwareMap.get(DcMotorEx.class, "lift"));
         claw = new Claw(hardwareMap.get(Servo.class, "claw"));
 
-        webcam = hardwareMap.get(CameraName.class, "Webcam 1");
+        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         smd = new SampleMecanumDrive(hardwareMap);
 
@@ -120,9 +117,10 @@ public class Autonomous extends Main {
             tfod.activate();
             tfod.setZoom(1.0, 16.0/9.0);
             tfod.setClippingMargins(0,0,0,0); // This will need to be updated
+        } else {
+            telemetry.addLine("Tfod is null!");
+            telemetry.update();
         }
-
-        vuforia.setFrameQueueCapacity(1);
 
         runtime = new ElapsedTime();
 
@@ -147,7 +145,8 @@ public class Autonomous extends Main {
     @Override
     public void start() {
 
-        state = State.DETECT_SIGNAL;
+        state = State.STARTING_MOVEMENT;
+
 
         runtime.reset();
 
@@ -157,13 +156,52 @@ public class Autonomous extends Main {
     public void loop() {
 
         switch (state) {
+            case STARTING_MOVEMENT:
+                if (runtime.milliseconds() < 300) {
+                    smd.setWeightedDrivePower(
+                            new Pose2d(
+                                    -0.5,
+                                    0,
+                                    0
+                            )
+                    );
+                } else {
+                    state = State.WAIT_FOR_ELEMENT;
+                    firstFrame = true;
+                }
+
+                smd.update();
+                break;
             case WAIT_FOR_ELEMENT:
+                if (firstFrame) {
+                    runtime.reset();
+                    vuforia.setFrameQueueCapacity(1);
+                }
                 if (runtime.seconds() > 1) {
                     state = State.DETECT_SIGNAL;
                     firstFrame = true;
+                    smd.setWeightedDrivePower(
+                            new Pose2d(
+                                    0,
+                                    0,
+                                    0
+                            )
+                    );
+
+                    smd.update();
+                    runtime.reset();
                     break;
                 }
                 firstFrame = false;
+                smd.setWeightedDrivePower(
+                        new Pose2d(
+                                0,
+                                0,
+                                0
+                        )
+                );
+
+                smd.update();
                 break;
             case DETECT_SIGNAL:
                 if (runtime.seconds() > 10) {
@@ -216,71 +254,58 @@ public class Autonomous extends Main {
                         detected = 4;
                         break;
                 }
-                state = State.SET_TRAJECTORIES;
+                state = State.TIME_BASED_MOVEMENT;
+                runtime.reset();
                 firstFrame = true;
                 break;
-            case SET_TRAJECTORIES:
-                traj1 = smd.trajectoryBuilder(new Pose2d())
-                        .forward(10)
-                        .build();
-
-                if (version.equals(Version.RIGHT)) {
-                    traj2 = smd.trajectoryBuilder(traj1.end())
-                            .strafeLeft(5)
-                            .build();
+            case TIME_BASED_MOVEMENT:
+                if (runtime.milliseconds() < 800) {
+                    smd.setWeightedDrivePower(
+                            new Pose2d(
+                                    -0.5,
+                                    0,
+                                    0
+                            )
+                    );
+                } else if (runtime.milliseconds() < 2000) {
+                    if (detected == 1) {
+                        smd.setWeightedDrivePower(
+                                new Pose2d(
+                                        0,
+                                        0.5,
+                                        0
+                                )
+                        );
+                    } else if (detected == 2 || detected == 4) {
+                        break;
+                    } else {
+                        smd.setWeightedDrivePower(
+                                new Pose2d(
+                                        0,
+                                        -0.5,
+                                        0
+                                )
+                        );
+                    }
                 } else {
-                    traj2 = smd.trajectoryBuilder(traj1.end())
-                            .strafeRight(5)
-                            .build();
+                    state = State.STOP;
                 }
 
-                traj3 = smd.trajectoryBuilder(traj2.end())
-                        .forward(2)
-                        .build();
+                smd.update();
 
-                traj4 = smd.trajectoryBuilder(traj3.end())
-                        .back(2)
-                        .build();
-
-                if (detected == 1) {
-                    traj5 = smd.trajectoryBuilder(traj4.end())
-                            .strafeLeft(10)
-                            .build();
-                } else if (detected == 2 || detected == 4) {
-                    traj5 = null;
-                } else {
-                    traj5 = smd.trajectoryBuilder(traj4.end())
-                            .strafeRight(10)
-                            .build();
-                }
-                state = State.MOVEMENT;
-                break;
-            case MOVEMENT:
-                if (firstFrame) {
-                    claw.close();
-                    smd.followTrajectory(traj1); // forward
-                    smd.followTrajectory(traj2); // sideways
-                    smd.followTrajectory(traj3); // forward (slight)
-                    lift.scoringM();
-                }
-                if (Math.abs(lift.motor.getTargetPosition() - lift.motor.getCurrentPosition()) < 5) {
-                    state = State.MOVEMENT_2;
-                    firstFrame = true;
-                    break;
-                }
                 firstFrame = false;
-                break;
-            case MOVEMENT_2:
-                claw.open();
-                lift.runToPosition(0);
-                smd.followTrajectory(traj4); // back (slight)
-                if (traj5 != null) {
-                    smd.followTrajectory(traj5); // sideways
-                }
 
-                state = State.STOP;
                 break;
             case STOP:
+                smd.setWeightedDrivePower(
+                        new Pose2d(
+                                0,
+                                0,
+                                0
+                        )
+                );
+
+                smd.update();
                 break;
             default:
                 state = State.STOP;
@@ -302,7 +327,8 @@ public class Autonomous extends Main {
     }
 
     private void initVuforia() {
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraName = webcam;

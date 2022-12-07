@@ -222,11 +222,6 @@ public class DriverControlled extends Main {
 //                // This is temporary. We only need this until we have an encoder on the arm motor
 //                checkArmMovement();
 
-                // If dpad_down is held, open claw
-                if (gamepad1.dpad_down) {
-                    claw.open();
-                }
-
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
                 } if (gamepad1.dpad_up) {
@@ -249,10 +244,6 @@ public class DriverControlled extends Main {
 //                // This is temporary. We only need this until we have an encoder on the arm motor
 //                checkArmMovement();
 
-                if (gamepad1.dpad_down) {
-                    claw.open();
-                }
-
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
                 } if (gamepad1.dpad_up) {
@@ -274,10 +265,6 @@ public class DriverControlled extends Main {
 
 //                // This is temporary. We only need this until we have an encoder on the arm motor
 //                checkArmMovement();
-
-                if (gamepad1.dpad_down) {
-                    claw.open();
-                }
 
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
