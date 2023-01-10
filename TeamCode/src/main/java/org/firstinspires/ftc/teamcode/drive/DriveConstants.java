@@ -34,7 +34,8 @@ public class DriveConstants {
      * from DriveVelocityPIDTuner.
      */
     public static final boolean RUN_USING_ENCODER = true;
-    public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(0,0, 0, 10.055238767615505);
+    public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(0, 0, 0,
+      getMotorVelocityF(MAX_RPM / 60 * TICKS_PER_REV));
 
     /*
      * These are physical constants that can be determined from your robot (including the track
@@ -54,7 +55,7 @@ public class DriveConstants {
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = 1.0 / rpmToVelocity(MAX_RPM);
+    public static double kV = 1.0 / 55.8;
     public static double kA = 0;
     public static double kStatic = 0;
 
@@ -86,9 +87,9 @@ public class DriveConstants {
      * You are free to raise this on your own if you would like. It is best determined through experimentation.
      
      */
-    public static double MAX_VEL = 49.3814283931; // Voltage Compensated kF = 13.055238767615505
-    public static double MAX_ACCEL = 52.48291908330528;
-    public static double MAX_ANG_VEL = Math.toRadians(0.06366197877829388);
+    public static double MAX_VEL = 55.8;
+    public static double MAX_ACCEL = 55.8;
+    public static double MAX_ANG_VEL = Math.toRadians(222.7444266666667);
     public static double MAX_ANG_ACCEL = Math.toRadians(222.7444266666667);
 
 

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.main;
 import android.graphics.Bitmap;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
@@ -27,19 +28,18 @@ import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
+import java.util.Vector;
+
 //@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Power-Play-Autonomous",group="Power-Play",preselectTeleOp="Power-Play")
 public class Autonomous extends Main {
 
     enum State {
         STARTING_MOVEMENT,
-        WAIT_FOR_ELEMENT,
+        SET_FRAME_QUEUE_CAPACITY,
         DETECT_SIGNAL,
         SET_DETECTION,
-        SET_TRAJECTORIES,
-        TIME_BASED_MOVEMENT,
-        MOVEMENT,
-        MOVEMENT_2,
+        FOLLOW_TRAJECTORIES,
         STOP,
         ;
     }
@@ -47,6 +47,7 @@ public class Autonomous extends Main {
     State state;
 
     ElapsedTime runtime;
+    ElapsedTime statetime;
 
     SampleMecanumDrive smd = null;
 
@@ -77,6 +78,11 @@ public class Autonomous extends Main {
             "2 Bulb",
             "3 Panel"
     };
+
+    Trajectory starting_movement;
+    Trajectory move_pos_1;
+    Trajectory move_pos_2;
+    Trajectory move_pos_3;
 
     @Override
     public void init() {
@@ -122,7 +128,27 @@ public class Autonomous extends Main {
             telemetry.update();
         }
 
+        starting_movement = smd.trajectoryBuilder(new Pose2d(0, 0))
+                .back(-5)
+                .build();
+
+        move_pos_1 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
+                .splineTo(new Vector2d(15, -10), Math.toRadians(0))
+                .build();
+
+        move_pos_2 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
+                .splineTo(new Vector2d(0, -10), Math.toRadians(0))
+                .build();
+
+        move_pos_3 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
+                .splineTo(new Vector2d(-15, -10), Math.toRadians(0))
+                .build();
+
         runtime = new ElapsedTime();
+        statetime = new ElapsedTime();
 
     }
 
@@ -147,7 +173,6 @@ public class Autonomous extends Main {
 
         state = State.STARTING_MOVEMENT;
 
-
         runtime.reset();
 
     }
@@ -157,57 +182,26 @@ public class Autonomous extends Main {
 
         switch (state) {
             case STARTING_MOVEMENT:
-                if (runtime.milliseconds() < 300) {
-                    smd.setWeightedDrivePower(
-                            new Pose2d(
-                                    -0.5,
-                                    0,
-                                    0
-                            )
-                    );
-                } else {
-                    state = State.WAIT_FOR_ELEMENT;
-                    firstFrame = true;
-                }
-
+                statetime.reset();
+                smd.followTrajectory(starting_movement);
                 smd.update();
+
+                state = State.SET_FRAME_QUEUE_CAPACITY;
+                statetime.reset();
                 break;
-            case WAIT_FOR_ELEMENT:
-                if (firstFrame) {
-                    runtime.reset();
-                    vuforia.setFrameQueueCapacity(1);
-                }
-                if (runtime.seconds() > 1) {
+            case SET_FRAME_QUEUE_CAPACITY:
+                vuforia.setFrameQueueCapacity(1);
+
+                if (statetime.seconds() > 3) {
                     state = State.DETECT_SIGNAL;
-                    firstFrame = true;
-                    smd.setWeightedDrivePower(
-                            new Pose2d(
-                                    0,
-                                    0,
-                                    0
-                            )
-                    );
-
-                    smd.update();
-                    runtime.reset();
-                    break;
+                    statetime.reset();
                 }
-                firstFrame = false;
-                smd.setWeightedDrivePower(
-                        new Pose2d(
-                                0,
-                                0,
-                                0
-                        )
-                );
 
-                smd.update();
                 break;
             case DETECT_SIGNAL:
-                if (runtime.seconds() > 10) {
+                if (statetime.seconds() > 10) {
                     text = "unknown";
                     state = State.SET_DETECTION;
-                    firstFrame = true;
                     break;
                 }
                 // get bitmap from camera
@@ -222,8 +216,6 @@ public class Autonomous extends Main {
                 // create reader
                 MultiFormatReader reader = new MultiFormatReader();
 
-                firstFrame = false;
-
                 // read image and get text
                 Result result = null;
                 try {
@@ -237,7 +229,7 @@ public class Autonomous extends Main {
                     break;
                 }
                 state = State.SET_DETECTION;
-                firstFrame = true;
+                statetime.reset();
                 break;
             case SET_DETECTION:
                 switch (text) {
@@ -254,47 +246,23 @@ public class Autonomous extends Main {
                         detected = 4;
                         break;
                 }
-                state = State.TIME_BASED_MOVEMENT;
-                runtime.reset();
-                firstFrame = true;
+
+                state = State.FOLLOW_TRAJECTORIES;
+                statetime.reset();
                 break;
-            case TIME_BASED_MOVEMENT:
-                if (runtime.milliseconds() < 800) {
-                    smd.setWeightedDrivePower(
-                            new Pose2d(
-                                    -0.5,
-                                    0,
-                                    0
-                            )
-                    );
-                } else if (runtime.milliseconds() < 2000) {
-                    if (detected == 1) {
-                        smd.setWeightedDrivePower(
-                                new Pose2d(
-                                        0,
-                                        0.5,
-                                        0
-                                )
-                        );
-                    } else if (detected == 2 || detected == 4) {
-                        break;
-                    } else {
-                        smd.setWeightedDrivePower(
-                                new Pose2d(
-                                        0,
-                                        -0.5,
-                                        0
-                                )
-                        );
-                    }
+            case FOLLOW_TRAJECTORIES:
+                if (detected == 1) {
+                    smd.followTrajectory(move_pos_1);
+                } else if (detected == 2) {
+                    smd.followTrajectory(move_pos_2);
+                } else if (detected == 3) {
+                    smd.followTrajectory(move_pos_3);
                 } else {
-                    state = State.STOP;
+                    smd.followTrajectory(move_pos_1);
                 }
 
-                smd.update();
-
-                firstFrame = false;
-
+                state = State.STOP;
+                statetime.reset();
                 break;
             case STOP:
                 smd.setWeightedDrivePower(
@@ -315,6 +283,7 @@ public class Autonomous extends Main {
         telemetry.addLine("Version: " + version);
         telemetry.addLine("State: " + state);
         telemetry.addLine("Runtime: " + runtime);
+        telemetry.addLine("Statetime: " + statetime);
         telemetry.addLine("Detected: " + detected);
         telemetry.addLine("Text: " + text);
 

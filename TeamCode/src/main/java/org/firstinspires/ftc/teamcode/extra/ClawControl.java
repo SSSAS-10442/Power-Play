@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Disabled
+//@Disabled
 @TeleOp(name="Claw-Control",group="Power-Play-Extra")
 public class ClawControl extends OpMode {
 
@@ -25,10 +25,10 @@ public class ClawControl extends OpMode {
     public void loop() {
 
         if (gamepad1.a && !aLastFrame) {
-            clawPos += 0.05;
+            clawPos += 0.025;
         }
         if (gamepad1.b && !bLastFrame) {
-            clawPos -= 0.05;
+            clawPos -= 0.025;
         }
 
         claw.setPosition(clawPos);

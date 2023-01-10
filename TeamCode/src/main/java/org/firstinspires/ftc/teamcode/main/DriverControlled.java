@@ -93,17 +93,6 @@ public class DriverControlled extends Main {
         }
     }
 
-    private void updateArmMod() {
-        if (gamepad1.b) {
-            arm.mod += 50;
-        } else if (gamepad1.a) {
-            arm.mod -= 50;
-        }
-        if (arm.mod < 0) {
-            arm.mod = 0;
-        }
-    }
-
     private void checkArmMovement() {
         if (gamepad1.b) {
             arm.motor.setPower(1);
@@ -151,7 +140,7 @@ public class DriverControlled extends Main {
 
         // Initialize arm
         arm = new Arm(hardwareMap.get(DcMotorEx.class, "arm"));
-        arm.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // REMOVE THIS ONCE WE GET AN ENCODER ON ARM
+//        arm.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // REMOVE THIS ONCE WE GET AN ENCODER ON ARM
 
         // Initialize lift
         lift = new Lift(hardwareMap.get(DcMotorEx.class,"lift"));
@@ -195,10 +184,6 @@ public class DriverControlled extends Main {
 
                 updateLiftMod();
 
-//                // This is temporary. We only need this until we have an encoder on the arm motor
-//                checkArmMovement();
-                updateArmMod();
-
                 // If dpad_up is pressed, switch to GRAB_CONE state
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
@@ -219,9 +204,6 @@ public class DriverControlled extends Main {
 
                 updateLiftMod();
 
-//                // This is temporary. We only need this until we have an encoder on the arm motor
-//                checkArmMovement();
-
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
                 } if (gamepad1.dpad_up) {
@@ -241,9 +223,6 @@ public class DriverControlled extends Main {
 
                 updateLiftMod();
 
-//                // This is temporary. We only need this until we have an encoder on the arm motor
-//                checkArmMovement();
-
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
                 } if (gamepad1.dpad_up) {
@@ -262,9 +241,6 @@ public class DriverControlled extends Main {
                 lift.scoringS();
 
                 updateLiftMod();
-
-//                // This is temporary. We only need this until we have an encoder on the arm motor
-//                checkArmMovement();
 
                 if (gamepad1.dpad_left) {
                     state = State.SCORING_S;
