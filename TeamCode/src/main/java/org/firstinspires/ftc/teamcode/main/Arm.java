@@ -40,6 +40,7 @@ public class Arm {
     }
 
     void runToPosition(int position) {
+        motor.setTargetPosition(position);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         go();
     }

@@ -163,6 +163,8 @@ public class DriverControlled extends Main {
     @Override
     public void start() {
 
+        claw.open();
+
     }
 
     /**

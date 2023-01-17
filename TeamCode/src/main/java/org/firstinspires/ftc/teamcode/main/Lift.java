@@ -13,7 +13,7 @@ public class Lift {
     public Lift(DcMotorEx lift) {
         this.motor = lift;
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
