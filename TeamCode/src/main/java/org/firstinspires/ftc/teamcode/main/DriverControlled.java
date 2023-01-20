@@ -76,7 +76,6 @@ public class DriverControlled extends Main {
      * */
     private void updateTelemetry() {
         telemetry.addData("State", state);
-        telemetry.addData("Version", version);
         telemetry.addData("Lift Mod", lift.mod);
         telemetry.addData("Arm Mod", lift.mod);
 //        telemetry.addLine("----------");

@@ -28,6 +28,7 @@ import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 //@Disabled
@@ -37,9 +38,12 @@ public class Autonomous extends Main {
     enum State {
         STARTING_MOVEMENT,
         SET_FRAME_QUEUE_CAPACITY,
+        WAIT_FOR_FRAME,
         DETECT_SIGNAL,
         SET_DETECTION,
-        FOLLOW_TRAJECTORIES,
+//        FOLLOW_TRAJECTORIES,
+        MOVEMENT_LR,
+        MOVEMENT_BACK,
         STOP,
         ;
     }
@@ -105,6 +109,8 @@ public class Autonomous extends Main {
         lift = new Lift(hardwareMap.get(DcMotorEx.class, "lift"));
         claw = new Claw(hardwareMap.get(Servo.class, "claw"));
 
+        claw.close();
+
         webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         smd = new SampleMecanumDrive(hardwareMap);
@@ -122,29 +128,28 @@ public class Autonomous extends Main {
         if (tfod != null) {
             tfod.activate();
             tfod.setZoom(1.0, 16.0/9.0);
-            tfod.setClippingMargins(0,0,0,0); // This will need to be updated
+            tfod.setClippingMargins(0,0,0,0);
         } else {
             telemetry.addLine("Tfod is null!");
             telemetry.update();
         }
 
         starting_movement = smd.trajectoryBuilder(new Pose2d(0, 0))
-                .back(-5)
+                .back(-6)
                 .build();
 
         move_pos_1 = smd.trajectoryBuilder(starting_movement.end())
-                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
-                .splineTo(new Vector2d(15, -10), Math.toRadians(0))
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
+                .splineTo(new Vector2d(12, -18), Math.toRadians(0))
                 .build();
 
         move_pos_2 = smd.trajectoryBuilder(starting_movement.end())
-                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
-                .splineTo(new Vector2d(0, -10), Math.toRadians(0))
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
                 .build();
 
         move_pos_3 = smd.trajectoryBuilder(starting_movement.end())
-                .splineTo(new Vector2d(0, -10), Math.toRadians(180))
-                .splineTo(new Vector2d(-15, -10), Math.toRadians(0))
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
+                .splineTo(new Vector2d(-12, -18), Math.toRadians(0))
                 .build();
 
         runtime = new ElapsedTime();
@@ -155,15 +160,6 @@ public class Autonomous extends Main {
     @Override
     public void init_loop() {
 
-        telemetry.addLine("SELECT A VERSION RIGHT NOW!!! A = Left, B = Right");
-        telemetry.addLine("Version: " + version);
-
-        if (gamepad1.a) {
-            version = Version.LEFT;
-        } if (gamepad1.b) {
-            version = Version.RIGHT;
-        }
-
         telemetry.update();
 
     }
@@ -171,7 +167,7 @@ public class Autonomous extends Main {
     @Override
     public void start() {
 
-        state = State.STARTING_MOVEMENT;
+        state = State.SET_FRAME_QUEUE_CAPACITY;
 
         runtime.reset();
 
@@ -182,19 +178,35 @@ public class Autonomous extends Main {
 
         switch (state) {
             case STARTING_MOVEMENT:
-                statetime.reset();
-                smd.followTrajectory(starting_movement);
-                smd.update();
 
-                state = State.SET_FRAME_QUEUE_CAPACITY;
-                statetime.reset();
+                if (statetime.milliseconds() <= 500) {
+                    smd.setWeightedDrivePower(new Pose2d(-0.5, 0, 0));
+                    smd.update();
+                } else {
+                    smd.setWeightedDrivePower(new Pose2d( 0, 0, 0));
+                    smd.update();
+                    state = State.SET_FRAME_QUEUE_CAPACITY;
+                    statetime.reset();
+                    break;
+                }
+
                 break;
             case SET_FRAME_QUEUE_CAPACITY:
-                vuforia.setFrameQueueCapacity(1);
 
-                if (statetime.seconds() > 3) {
+                if (statetime.seconds() >= 1) {
+                    vuforia.setFrameQueueCapacity(1);
+                    state = State.WAIT_FOR_FRAME;
+                    statetime.reset();
+                    break;
+                }
+
+                break;
+            case WAIT_FOR_FRAME:
+
+                if (statetime.seconds() >= 3) {
                     state = State.DETECT_SIGNAL;
                     statetime.reset();
+                    break;
                 }
 
                 break;
@@ -205,7 +217,12 @@ public class Autonomous extends Main {
                     break;
                 }
                 // get bitmap from camera
-                Bitmap bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
+                Bitmap bitmap;
+                try {
+                    bitmap = vuforia.convertFrameToBitmap(vuforia.getFrameQueue().element());
+                } catch (NoSuchElementException e) {
+                    break;
+                }
 
                 // convert bitmap into a BinaryBitmap
                 int[] intArray = new int[bitmap.getWidth()*bitmap.getHeight()];
@@ -247,22 +264,53 @@ public class Autonomous extends Main {
                         break;
                 }
 
-                state = State.FOLLOW_TRAJECTORIES;
+                state = State.MOVEMENT_LR;
                 statetime.reset();
                 break;
-            case FOLLOW_TRAJECTORIES:
-                if (detected == 1) {
-                    smd.followTrajectory(move_pos_1);
-                } else if (detected == 2) {
-                    smd.followTrajectory(move_pos_2);
-                } else if (detected == 3) {
-                    smd.followTrajectory(move_pos_3);
+//            case FOLLOW_TRAJECTORIES:
+//                if (detected == 1) {
+//                    smd.followTrajectory(move_pos_1);
+//                } else if (detected == 2) {
+//                    smd.followTrajectory(move_pos_2);
+//                } else if (detected == 3) {
+//                    smd.followTrajectory(move_pos_3);
+//                } else {
+//                    smd.followTrajectory(move_pos_1);
+//                }
+//
+//                state = State.STOP;
+//                statetime.reset();
+//                break;
+            case MOVEMENT_LR:
+                if (statetime.milliseconds() <= 750) {
+                    if (detected == 1) {
+                        smd.setWeightedDrivePower(new Pose2d(0, -1, 0));
+                    } else if (detected == 2) {
+                        smd.setWeightedDrivePower(new Pose2d(0, 0, 0));
+                    } else if (detected == 3) {
+                        smd.setWeightedDrivePower(new Pose2d(0, 1, 0));
+                    } else {
+                        smd.setWeightedDrivePower(new Pose2d(0, -1, 0)); // pos 1
+                    }
+                    smd.update();
                 } else {
-                    smd.followTrajectory(move_pos_1);
+                    smd.setWeightedDrivePower(new Pose2d(0, 0, 0));
+                    smd.update();
+                    state = State.MOVEMENT_BACK;
+                    statetime.reset();
+                    break;
                 }
-
-                state = State.STOP;
-                statetime.reset();
+                break;
+            case MOVEMENT_BACK:
+                if (statetime.milliseconds() <= 750) {
+                    smd.setWeightedDrivePower(new Pose2d(-1, 0, 0));
+                    smd.update();
+                } else {
+                    smd.setWeightedDrivePower(new Pose2d(0, 0, 0));
+                    smd.update();
+                    state = State.STOP;
+                    break;
+                }
                 break;
             case STOP:
                 smd.setWeightedDrivePower(
@@ -280,7 +328,6 @@ public class Autonomous extends Main {
                 break;
         }
 
-        telemetry.addLine("Version: " + version);
         telemetry.addLine("State: " + state);
         telemetry.addLine("Runtime: " + runtime);
         telemetry.addLine("Statetime: " + statetime);

@@ -16,7 +16,7 @@ public class Arm {
     }
 
     void go() {
-        go(3000);
+        go(2000);
     }
 
     void go(int velocity) {
