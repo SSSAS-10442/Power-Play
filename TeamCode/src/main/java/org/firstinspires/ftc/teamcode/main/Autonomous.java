@@ -28,15 +28,8 @@ import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaException;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Vector;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.apriltag.AprilTagDetection;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 
 //@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Power-Play-Autonomous",group="Power-Play",preselectTeleOp="Power-Play")
@@ -44,8 +37,6 @@ public class Autonomous extends Main {
 
     enum State {
         STARTING_MOVEMENT,
-        DETECT_APRIL_TAGS,
-        SET_APRIL_DETECTION,
         SET_FRAME_QUEUE_CAPACITY,
         WAIT_FOR_FRAME,
         DETECT_SIGNAL,
@@ -78,30 +69,7 @@ public class Autonomous extends Main {
     public static final String VUFORIA_KEY = "AUSBY5z/////AAABmUOC52AJv0GOqfnlyjbd7h+LxEPkJlirbhJF8t0uZqXeuSkDRSypxxpINhoFZfuGIYVYJ44HHOx6rZnFa0V7PAd180mC9LDIOAR+PyVJ8T8DcimfzUe0iMAg/Ihek+5YjEW9B7XdX5Eknq3ixlhNR6lcUZfoAp5eEZ/Zjvw+OmmHI8h0yswNVdKKuqp5M5zPRlRB8Fo+IsMsvlMbK/WzHTMIFkuxceZyUQ/RBm2D4VpZXNRys6y9E8iblfPtdd7EjrJB6cpO5sDLQS5iYCqp5G9KkF3pimQrQ+Ge+SyuW1aZ0vGJvAcm3M2p1Z1gpUtVN5W1wLWPp4woLaN/q48CWKEddDMDrKDqkMRjhrJlVi52";
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
 
-    OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
-
-    static final double FEET_PER_METER = 3.28084;
-
-    // Lens intrinsics
-    // UNITS ARE PIXELS
-    // NOTE: this calibration is for the C920 webcam at 800x448.
-    // You will need to do your own calibration for other configurations!
-    double fx = 578.272;
-    double fy = 578.272;
-    double cx = 402.145;
-    double cy = 221.506;
-
-    // UNITS ARE METERS
-    double tagsize = 0.166;
-
-    int LEFT = 1; // Tag ID 1 from the 36h11 family
-    int MID = 2;
-    int RIGHT = 3;
-
-    AprilTagDetection tagOfInterest = null;
-
-    int cameraMonitorViewId;
+    WebcamName webcam;
 
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
@@ -143,49 +111,46 @@ public class Autonomous extends Main {
 
         claw.close();
 
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-
-        camera.setPipeline(aprilTagDetectionPipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode)
-            {
-
-            }
-        });
-
-        telemetry.setMsTransmissionInterval(50);
+        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         smd = new SampleMecanumDrive(hardwareMap);
 
         imu.initIMU();
 
-//        starting_movement = smd.trajectoryBuilder(new Pose2d(0, 0))
-//                .back(-6)
-//                .build();
-//
-//        move_pos_1 = smd.trajectoryBuilder(starting_movement.end())
-//                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
-//                .splineTo(new Vector2d(12, -18), Math.toRadians(0))
-//                .build();
-//
-//        move_pos_2 = smd.trajectoryBuilder(starting_movement.end())
-//                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
-//                .build();
-//
-//        move_pos_3 = smd.trajectoryBuilder(starting_movement.end())
-//                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
-//                .splineTo(new Vector2d(-12, -18), Math.toRadians(0))
-//                .build();
+        try {
+            initVuforia();
+            initTfod();
+        } catch (VuforiaException ve) {
+            telemetry.addLine("Failed to initialize camera!");
+            telemetry.update();
+        }
+
+        if (tfod != null) {
+            tfod.activate();
+            tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setClippingMargins(0,0,0,0);
+        } else {
+            telemetry.addLine("Tfod is null!");
+            telemetry.update();
+        }
+
+        starting_movement = smd.trajectoryBuilder(new Pose2d(0, 0))
+                .back(-6)
+                .build();
+
+        move_pos_1 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
+                .splineTo(new Vector2d(12, -18), Math.toRadians(0))
+                .build();
+
+        move_pos_2 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
+                .build();
+
+        move_pos_3 = smd.trajectoryBuilder(starting_movement.end())
+                .splineTo(new Vector2d(0, -18), Math.toRadians(0))
+                .splineTo(new Vector2d(-12, -18), Math.toRadians(0))
+                .build();
 
         runtime = new ElapsedTime();
         statetime = new ElapsedTime();
@@ -220,52 +185,11 @@ public class Autonomous extends Main {
                 } else {
                     smd.setWeightedDrivePower(new Pose2d( 0, 0, 0));
                     smd.update();
-                    state = State.DETECT_APRIL_TAGS;
+                    state = State.SET_FRAME_QUEUE_CAPACITY;
                     statetime.reset();
                     break;
                 }
 
-                break;
-            case DETECT_APRIL_TAGS:
-
-                if (statetime.seconds() <= 10) {
-                    ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-
-                    if (currentDetections.size() != 0) {
-
-                        for (AprilTagDetection tag : currentDetections) {
-                            if (tag.id == LEFT || tag.id == MID || tag.id == RIGHT) {
-                                tagOfInterest = tag;
-                                state = State.SET_APRIL_DETECTION;
-                                statetime.reset();
-                                break;
-                            }
-                        }
-
-                    }
-                } else {
-                    state = State.SET_APRIL_DETECTION;
-                    statetime.reset();
-                    break;
-                }
-
-                telemetry.update();
-                break;
-            case SET_APRIL_DETECTION:
-
-                /* Actually do something useful */
-                if(tagOfInterest == null){
-                    detected = 4;
-                } else if (tagOfInterest.id == LEFT){
-                    detected = 1;
-                } else if (tagOfInterest.id == MID){
-                    detected = 2;
-                } else {
-                    detected = 3;
-                }
-
-                state = State.MOVEMENT_LR;
-                statetime.reset();
                 break;
             case SET_FRAME_QUEUE_CAPACITY:
 
@@ -418,6 +342,30 @@ public class Autonomous extends Main {
 
     }
 
+    private void initVuforia() {
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraName = webcam;
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Loading trackables is not necessary for the TensorFlow Object Detection engine.
+    }
+
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = 0.2f;
+        tfodParameters.isModelTensorFlow2 = true;
+        tfodParameters.inputSize = 320;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
+    }
+
     void initRoadRunner() {
         // This is assuming you're using StandardTrackingWheelLocalizer.java
         // Switch this class to something else (Like TwoWheeTrackingLocalizer.java) if your configuration is different
@@ -434,17 +382,6 @@ public class Autonomous extends Main {
 
         // Retrieve your pose
         poseRR = localizerRR.getPoseEstimate();
-    }
-
-    void tagToTelemetry(AprilTagDetection detection)
-    {
-        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
-        telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x*FEET_PER_METER));
-        telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y*FEET_PER_METER));
-        telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z*FEET_PER_METER));
-        telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
-        telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
-        telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
     }
 
 }
